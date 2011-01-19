@@ -1,0 +1,22 @@
+[ 제안사항 ]
+
+2010.12.22
+effect 효과 적용된 e card 소스
+main/editor/pictureEditor/PictureEditor
+main/editor/bgEditor/Viewer
+main/editor/movieEditor/MEViewer
+main/editor/movieEditor/Title
+filter/FilterCollection
+
+
+2010.12.21
+이미지 보정화면
+- 상단 네비 이동 x
+- 이미지 등록 버튼 , 이미지 삭제 버튼 없애기
+- close 버튼시 저장 할지 여부 묻는지..
+
+// - 스킨효과 , 스킨보정 , 초기화 버튼 기능 정의 다시 설명 필요
+// - 로모 정도 셀렉트 박스 없애는 것인지 ( 이전 회의때 없앤다는 내용이 기억나서 ... )
+- 좌우맞춤 , 상하맞춤 기능정의
+- Crop , 잘라내기 삭제
+- Crop 앵글 바깥쪽 그레이 효과 , 앵글을 움직이도록 기능.
