@@ -36,10 +36,12 @@ package com.mcard.popup
 		private var canvasWrapAngle:MovieClip = new MovieClip();
 		private var canvasWrapAngleRect:MovieClip = new MovieClip();
 		private var angleWH:Vector.<Number> = new Vector.<Number>;
-		private var b:Bitmap = new Bitmap;
+		private var bmList:Vector.<Bitmap> = new Vector.<Bitmap>;
+		private var realB:Bitmap = new Bitmap;
 		private var bOriginal:Bitmap = new Bitmap;
 		private var bitmapOrigWH:Vector.<Number> = new Vector.<Number>;
 		private var bd:BitmapData;
+		private var bbd:BitmapData;
 		private var bmBox:MovieClip = new MovieClip();
 		
 		private var filterCollector:FilterCollection = new FilterCollection();
@@ -69,7 +71,6 @@ package com.mcard.popup
 		}
 		private function setDefault():void
 		{
-			trace( "setDefualt" );
 			lomoBox.dataProvider = lomoBoxData;
 			lomoBox.name = Preset.EDIT_POP_LOMOBOX_NAME;
 			for( var ii:Number = 1 ; ii <= Preset.EDIT_POP_LOMOBOX_DATA.length ; ii++ )
@@ -85,7 +86,11 @@ package com.mcard.popup
 			wrapMask.y = editClip.canvas.y;
 			canvasWrapAngle.mask = wrapMask;
 			canvasWrapAngle.name = "angleWrapper";
-			
+			editClip.btnSepia.buttonMode = true;
+			editClip.btnOld.buttonMode = true;
+			editClip.btnGray.buttonMode = true;
+			editClip.btnLomo.buttonMode = true;
+			editClip.btnLuxury.buttonMode = true;
 		}
 		private function setView():void
 		{
@@ -110,6 +115,7 @@ package com.mcard.popup
 			editClip.btnSave.addEventListener( MouseEvent.CLICK , saveClick );
 			editClip.btnRotationLeft.addEventListener( MouseEvent.CLICK , rotationLeftClick );
 			editClip.btnRotationRight.addEventListener( MouseEvent.CLICK , rotationRightClick );
+			addEventListener( MouseEvent.MOUSE_UP , stageMouseUp );
 			editClip.getChildByName( "btn" + Preset.EDIT_POP_GRAY_PREFIX ).addEventListener( MouseEvent.CLICK , effectClick );
 			editClip.getChildByName( "btn" + Preset.EDIT_POP_SEPIA_PREFIX ).addEventListener( MouseEvent.CLICK , effectClick );
 			editClip.getChildByName( "btn" + Preset.EDIT_POP_OLD_PREFIX ).addEventListener( MouseEvent.CLICK , effectClick );
@@ -118,7 +124,7 @@ package com.mcard.popup
 			editClip.getChildByName( Preset.EDIT_POP_LOMOBOX_NAME ).addEventListener( Event.CHANGE , comboboxSelected );
 			sliderbarBrightness.addEventListener( SliderBar.CHANGE , sliderbarBrightnessChange );
 			sliderbarContrast.addEventListener( SliderBar.CHANGE , sliderbarContrastChange );
-			this.addEventListener( MouseEvent.MOUSE_UP , stageMouseUp );
+			
 			editClip.btnReset1.addEventListener( MouseEvent.CLICK , component1Reset );
 			editClip.btnReset2.addEventListener( MouseEvent.CLICK , component2Reset );
 			editClip.btnReset3.addEventListener( MouseEvent.CLICK , component3Reset );
@@ -127,9 +133,6 @@ package com.mcard.popup
 		
 		public function stageInit( numb:Number = NaN , isFirst:Boolean = true ):void
 		{
-			//trace("eidtInit start!111111111!! , numb , isFirst " , numb , isFirst );
-			//trace( ImageManager.thumbArr.length );
-			//trace( ImageManager.thumbArr );
 			if( !isNaN( numb ) )
 			{
 				this.numb = numb;
@@ -138,34 +141,115 @@ package com.mcard.popup
 			this.isFirst = isFirst;
 			if( isFirst )
 			{
-				bitmapSet();
+				//bitmapSet();
+				//topNaviAngleSet();
 			}
 			dispatchEvent( new EventInData( Preset.EDIT_POP_CLASS_STRING , Preset.DISPATCH_STAGEINIT_COMPLETE ) );
 		}
 		public function bitmapSet():void
 		{
+			var ii :Number;
 			DisplayObjectUtils.removeChilds( topNaviBox );
-			
-			for( var ii :Number = 0 ; ii < ImageManager.thumbArr.length ; ii++ )
+			for( ii = topNaviBox.numChildren ; ii > 0 ; ii-- )
 			{
-				var mc:MovieClip = new MovieClip();
-				var b:Bitmap = ImageUtils.duplicateImage( ImageManager.thumbArr[ii] );
+				topNaviBox.removeChildAt(0);
+			}
+			
+			for( ii = 0 ; ii < ImageManager.origImgArr.length ; ii++ )
+			{
+				var mc:MovieClip = DisplayObjectUtils.duplicate( editClip.topNaviBox.getChildAt(0) , true ) as MovieClip;
+				var bbb:Bitmap = ImageUtils.duplicateImage( ImageManager.origImgArr[ii] );
+				var bbbd:BitmapData;
 				mc.name = Preset.EDIT_POP_TOPNAVI_PREFIX + ii;
-				mc.addChild( b );
-				b.width = Preset.EDIT_POP_TOPNAVI_WH[0];
-				b.height = Preset.EDIT_POP_TOPNAVI_WH[1];
+				mc.buttonMode = true;
+				
+				//mc.addChildAt( bbb , 1 );
+				//bbb.width = Preset.EDIT_POP_TOPNAVI_WH[0];
+				//bbb.height = Preset.EDIT_POP_TOPNAVI_WH[1];
+				topNaviBmSetWH( mc , bbb );
 				mc.x = ( Preset.EDIT_POP_TOPNAVI_WH[0] + Preset.EDIT_POP_TOPNAVI_GAP ) * ii;
 				mc.addEventListener( MouseEvent.CLICK , topNaviItemClick );
 				topNaviBox.addChild( mc );
+				
+				//effect
+				if( bbb != null )
+				{
+					bbb.filters = [ new ColorMatrixFilter( colorMatrix ) ];
+					
+					// 흑백 , 갈샐 필터 적용
+					// 흑백 먼저 필터 주고 갈색 주면 갈색이 안먹는다.
+					// 갈색 먼저 처리하고 흑백...
+					if( ImageManager.effectSepia[ii] )
+					{
+						filterCollector.setSepia( bbb );
+					}
+					if( ImageManager.effectGray[ii] )
+					{
+						filterCollector.setGray( bbb );
+					}
+					
+					bbbd = bbb.bitmapData;
+					if( bbbd != null )
+					{
+						// 오래된 효과 적용
+						if( ImageManager.effectOld[ii] )
+						{
+							bbbd = filterCollector.backTotheFuture( bbbd );
+						}
+						// 화사한 효과 적용
+						if( ImageManager.effectLuxury[ii] )
+						{
+							bbbd = filterCollector.luxury( bbbd );
+						}
+						// 로모 적용
+						if( ImageManager.effectLomo[ii] > 0 )
+						{
+							bbbd = filterCollector.lomo( bbbd , ImageManager.effectLomo[ii] );
+						}
+					}
+					
+					bbb.bitmapData = bbbd;
+				}
 			}
+		}
+		private function topNaviBmSetWH( $mc:MovieClip , $bm:Bitmap ):void
+		{
+			//DisplayObjectUtils.removeChilds( $mc , 1 );
+			if( $mc.numChildren == 3 )
+			{
+				$mc.removeChildAt( 1 );
+			}
+			$mc.addChildAt( $bm , 1 );
+			$bm.width = Preset.EDIT_POP_TOPNAVI_WH[0];
+			$bm.height = Preset.EDIT_POP_TOPNAVI_WH[1];
 		}
 		public function show( numb:Number = NaN , skinNumb:Number = NaN ):void
 		{
-			trace(" edit pop show! numb : " + numb );
-			this.numb = numb;
+			var ii:Number;
+			for( ii = 0 ; ii < ImageManager.origImgArr.length ; ii++ )
+			{
+				ImageManager.positionXDummy[ii] = ImageManager.positionX[ii];
+				ImageManager.positionYDummy[ii] = ImageManager.positionY[ii];
+				ImageManager.rotateVDummy[ii] = ImageManager.rotateV[ii];
+				ImageManager.isVerticalDummy[ii] = ImageManager.isVertical[ii];
+				ImageManager.effectSepiaDummy[ii] = ImageManager.effectSepia[ii];
+				ImageManager.effectGrayDummy[ii] = ImageManager.effectGray[ii];
+				ImageManager.effectOldDummy[ii] = ImageManager.effectOld[ii];
+				ImageManager.effectLuxuryDummy[ii] = ImageManager.effectLuxury[ii];
+				ImageManager.effectLomoDummy[ii] = ImageManager.effectLomo[ii];
+				ImageManager.effectBrightnessDummy[ii] = ImageManager.effectBrightness[ii];
+				ImageManager.effectContrastDummy[ii] = ImageManager.effectContrast[ii];
+				
+				bmList[ii] = ImageUtils.duplicateImage( ImageManager.origImgArr[ii] );
+			}
+			
+			bitmapSet();
+			if( ImageManager.origImgArr.length )
+			{
+				numb = 0;	// 무조건 젤첫번째 이미지 띄운다.
+			}
 			this.skinNumb = skinNumb;
 			stageInit( numb , true );
-			//canvasInit();
 			
 			DisplayObjectUtils.removeChilds( editClip.canvas , 1 );
 			DisplayObjectUtils.removeChilds( bmBox );
@@ -181,43 +265,50 @@ package com.mcard.popup
 		public function hide():void
 		{
 			editClip.y = -editClip.height;
+			dispatchEvent( new Event( Preset.EVENT_STR_EDITPOP_CLOSE ) );
 		}
 		
 		private function closeClick( e:MouseEvent ):void
 		{
-			//trace( "close btn click" );
 			hide();
 			numb = NaN;
 		}
 		private function saveClick( e:MouseEvent ):void
 		{
-			trace("saveClick!");
-			
-			//trace( bitmapOrigWH );
-			var bm:Bitmap = ImageUtils.duplicateImage( b );
-			//trace( bm.width , bm.height );
-			bm.width = bitmapOrigWH[0];
-			bm.height = bitmapOrigWH[1];
-			var inData:EventInDataClass = new EventInDataClass( numb , bm );
-			inData.rotate = rotationTy;
-			inData.positionX = getPosition( true );
-			inData.positionY = getPosition( false );
-			inData.effectGray = isGray;
-			inData.effectSepia = isSepia;
-			inData.effectOld = isOld;
-			inData.effectLuxury = isLuxury;
-			inData.effectLomo = lomo;
-			inData.effectBrightness = brightnessRate;
-			inData.effectContrast = contrastRate;
-			
-			dispatchEvent( new EventInData( inData , "imgEditSet" ) );
+			var ii:Number;
+			for( ii = 0 ; ii < ImageManager.origImgArr.length ; ii++ )
+			{
+				var bm:Bitmap = ImageUtils.duplicateImage( bmList[ii] );
+				bm.width = bmList[numb].width;
+				bm.height = bmList[numb].height;
+				
+				var inData:EventInDataClass = new EventInDataClass( ii , bm );
+				inData.rotate = ImageManager.rotateVDummy[ii];
+				inData.positionX = ImageManager.positionXDummy[ii];
+				inData.positionY = ImageManager.positionYDummy[ii];
+				inData.effectGray = ImageManager.effectGrayDummy[ii];
+				inData.effectSepia = ImageManager.effectSepiaDummy[ii];
+				inData.effectOld = ImageManager.effectOldDummy[ii];
+				inData.effectLuxury = ImageManager.effectLuxuryDummy[ii];
+				inData.effectLomo = ImageManager.effectLomoDummy[ii];
+				inData.effectBrightness = ImageManager.effectBrightnessDummy[ii];
+				inData.effectContrast = ImageManager.effectContrastDummy[ii];
+				if( ii == ImageManager.origImgArr.length - 1 )
+				{
+					inData.isFinal = true;
+				} else {
+					inData.isFinal = false;
+				}
+				dispatchEvent( new EventInData( inData , "imgEditSet" ) );
+			}
 		}
 		private function topNaviItemClick( e:MouseEvent ):void
 		{
-			//trace("topNaviItemClick" );
+			var _mc:MovieClip = e.currentTarget as MovieClip;
 			var ii:Number = e.currentTarget.name.replace( Preset.EDIT_POP_TOPNAVI_PREFIX , "" ) ;
 			numb = ii;
-			bmBox.rotation = rotationTy ;//= 0;
+			topNaviAngleSet();
+			bmBox.rotation = rotationTy ;
 			canvasInit();
 			componentsEffectSet();
 			if( !isNaN( numb ) )
@@ -225,20 +316,30 @@ package com.mcard.popup
 				wrapperSet();
 			}
 		}
+		private function topNaviAngleSet():void
+		{
+			for( var ii:Number = 0 ; ii < ImageManager.origImgArr.length ; ii ++ )
+			{
+				var _mc:MovieClip = ( topNaviBox.getChildByName( Preset.EDIT_POP_TOPNAVI_PREFIX + ii ) as MovieClip ).focus as MovieClip;
+				if( numb == ii )
+				{
+					_mc.gotoAndStop( 2 );
+				} else {
+					_mc.gotoAndStop( 1 );
+				}
+			}
+		}
 		
 		private function sliderbarBrightnessChange( e:EventInData ):void
 		{
-			//trace("sliderbarBrightnessChange e.data : " + e.data );
 			brightnessRate = e.data as Number;
 		}
 		private function sliderbarContrastChange( e:EventInData ):void
 		{
-			//trace("sliderbarContrastRateChange e.data : " + e.data );
 			contrastRate = e.data as Number;
 		}
 		private function scrollMinusClick( e:MouseEvent ):void
 		{
-			//trace( "scrollMinusClick" );
 			var _mc:MovieClip = e.currentTarget as MovieClip;
 			var _parent:MovieClip = _mc.parent as MovieClip;
 			var mvX:Number = _parent.pointer.x - _parent.pointer.width;
@@ -248,7 +349,6 @@ package com.mcard.popup
 		}
 		private function scrollPlusClick( e:MouseEvent ):void
 		{
-			//trace( "scrollPlusClick" );
 			var _mc:MovieClip = e.currentTarget as MovieClip;
 			var _parent:MovieClip = _mc.parent as MovieClip;
 			var mvX:Number = _parent.pointer.x + _parent.pointer.width;
@@ -258,7 +358,6 @@ package com.mcard.popup
 		}
 		private function scrollPointerDown( e:MouseEvent ):void
 		{
-			//trace( "scrollPointerDown" );
 			var _mc:MovieClip = e.currentTarget as MovieClip;
 			var _parent:MovieClip = _mc.parent as MovieClip;
 			
@@ -267,40 +366,29 @@ package com.mcard.popup
 		}
 		private function stageMouseUp( e:MouseEvent ):void
 		{
-			trace("stageMouseUp");
 			brightnessRate = sliderbarBrightness.rate;
 			sliderbarBrightness.stopDrag();
 			contrastRate = sliderbarContrast.rate;
 			sliderbarContrast.stopDrag();
 			canvasWrapAngle.stopDrag();
-			effectInit();
+			if( !isNaN( numb ) )
+			{
+				effectInit( false );
+			}
 		}
 		
 		private function angleDown( e:MouseEvent ):void
 		{
-			//var rect:Rectangle = new Rectangle( editClip.canvas.x + angleWH[0] / 2 , editClip.canvas.y + angleWH[1] / 2 , wrapMask.width - angleWH[0] , wrapMask.height - angleWH[1] );
 			var rect:Rectangle = new Rectangle( editClip.canvas.x + ( editClip.canvas.width - editClip.canvas.getChildByName( "bmBox" ).width ) / 2 + angleWH[0] / 2 , editClip.canvas.y + ( editClip.canvas.height - editClip.canvas.getChildByName( "bmBox" ).height ) / 2 + angleWH[1] / 2 , editClip.canvas.getChildByName( "bmBox" ).width - angleWH[0] , editClip.canvas.getChildByName( "bmBox" ).height - angleWH[1] );
 			( e.currentTarget as MovieClip ).startDrag( false , rect );
-			
-			// 이동 거리 / 이동 가능한 거리 
-			// 이동 거리 = ( 중심점.x - 이동한.x )
-			trace( "move rate : " , ( editClip.getChildByName( "angleWrapper" ).x - ( editClip.canvas.width / 2 + editClip.canvas.x ) ) / (  editClip.canvas.getChildByName( "bmBox" ).width - angleWH[0] ) );
-			/*
-			trace( editClip.getChildByName( "angleWrapper" ).x );
-			trace( editClip.getChildByName( "angleWrapper" ).width );
-			trace( editClip.canvas.getChildByName( "bmBox" ).x );
-			trace( editClip.canvas.getChildByName( "bmBox" ).width );
-			trace( ( editClip.getChildByName( "angleWrapper" ) as MovieClip ).getChildByName( "canvasWrapAngleRect" ).x );
-			trace( ( editClip.getChildByName( "angleWrapper" ) as MovieClip ).getChildByName( "canvasWrapAngleRect" ).y );
-			*/
 		}
 		
 		// canvas wrapper create
 		// isOriginal : true 이면   0,0 으로   false 이면 저장된 위치로 wrapSet
 		private function wrapperSet( isOriginal:Boolean = false ):void
 		{
-			canvasWrapAngle.graphics.clear();
-			canvasWrapAngleRect.graphics.clear();
+			wrapperRemove();
+			
 			if( numb < 5 )
 			{
 				var _width:Number;
@@ -309,12 +397,10 @@ package com.mcard.popup
 				switch( numb )
 				{
 					case 0 :
-						//trace("case 1 ");
 						_width = ( SkinManager.skinBody[skinNumb] as MovieClip ).mainBox.width;
 						_height = ( SkinManager.skinBody[skinNumb] as MovieClip ).mainBox.height;
 						break;
 					case 1 :
-						//trace("case 2 ");
 						_width = ( SkinManager.skinBody[skinNumb] as MovieClip ).subBox1.width;
 						_height = ( SkinManager.skinBody[skinNumb] as MovieClip ).subBox1.height;
 						break;
@@ -331,13 +417,11 @@ package com.mcard.popup
 						_height = ( SkinManager.skinBody[skinNumb] as MovieClip ).subBox4.height;
 						break;
 				}
-				//trace( _width , _height );
 				
 				canvasWrapAngleRect.graphics.beginFill( 0xFF0000 , 0 );
 				canvasWrapAngleRect.graphics.drawRect( 0 , 0 ,_width , _height );
 				canvasWrapAngleRect.graphics.endFill();
 				var vect:Vector.<Number> = ImageUtils.getThumbWH( canvasWrapAngleRect , editClip.canvas , "max" , true );
-				//trace("vect : " , vect );
 				
 				_width = vect[0];
 				_height = vect[1];
@@ -346,7 +430,6 @@ package com.mcard.popup
 				canvasWrapAngleRect.graphics.drawRect( 0 , 0 ,_width , _height );
 				canvasWrapAngleRect.graphics.endFill();
 				vect = ImageUtils.getThumbWH( canvasWrapAngleRect , editClip.canvas.getChildAt( editClip.canvas.numChildren - 1 ) );
-				//trace("vect2 : " , vect );
 				
 				_width = vect[0];
 				_height = vect[1];
@@ -357,8 +440,6 @@ package com.mcard.popup
 				canvasWrapAngleRect.x = -_width / 2;
 				canvasWrapAngleRect.y = -_height / 2;
 				
-				//_width = editClip.canvas.getChildByName( Preset.EDIT_POP_CANVAS_IMAGE_PREFIX ).width;
-				//_height = editClip.canvas.getChildByName( Preset.EDIT_POP_CANVAS_IMAGE_PREFIX ).height;
 				angleWH[0] = _width;
 				angleWH[1] = _height;
 				canvasWrapAngle.x = editClip.canvas.x + editClip.canvas.width / 2;
@@ -376,10 +457,10 @@ package com.mcard.popup
 				if( !isOriginal )
 				{
 					if( !isNaN( ImageManager.positionX[numb] ) ) {
-						canvasWrapAngle.x += ( editClip.canvas.getChildByName( "bmBox" ).width - angleWH[0] ) * ImageManager.positionX[numb];
+						canvasWrapAngle.x += ( editClip.canvas.getChildByName( "bmBox" ).width - angleWH[0] ) * ImageManager.positionXDummy[numb];
 					}
 					if( !isNaN( ImageManager.positionY[numb] ) ) {
-						canvasWrapAngle.y += ( editClip.canvas.getChildByName( "bmBox" ).height - angleWH[1] ) * ImageManager.positionY[numb];
+						canvasWrapAngle.y += ( editClip.canvas.getChildByName( "bmBox" ).height - angleWH[1] ) * ImageManager.positionYDummy[numb];
 					}
 				}
 			}
@@ -392,11 +473,8 @@ package com.mcard.popup
 			
 		private function canvasInit():void
 		{
-			//trace( "canvasInit!!!" );
 			if( !isNaN( numb ) )
 			{
-				//trace("numb!!!" , numb );
-				
 				bmBox.name = "bmBox";
 				DisplayObjectUtils.removeChilds( editClip.canvas , 1 );
 				DisplayObjectUtils.removeChilds( bmBox );
@@ -405,36 +483,32 @@ package com.mcard.popup
 				bmBox.x = editClip.canvas.width / 2;
 				bmBox.y = editClip.canvas.height / 2;
 				
-				b = ImageUtils.duplicateImage( ImageManager.origImgArr[numb] );
-				bmBox.addChild( b );
-								
-				bitmapOrigWH[0] = b.width;
-				bitmapOrigWH[1] = b.height;
+				bmList[numb] = ImageUtils.duplicateImage( ImageManager.origImgArr[numb] );
+				bmBox.addChild( bmList[numb] );
+
+				bitmapOrigWH[0] = bmList[numb].width;
+				bitmapOrigWH[1] = bmList[numb].height;
 				
 				bitmapAddchild();
-				
-				//b.name = Preset.EDIT_POP_CANVAS_IMAGE_PREFIX;
 			}
 		}
 		
 		// effect component reset
 		private function componentsEffectSet():void
 		{
-			trace( "componentsEffectSet" , numb );
-			
 			if( !isNaN(numb) )
 			{
-				isGray = ImageManager.effectGray[numb];
-				isSepia = ImageManager.effectSepia[numb];
-				isOld = ImageManager.effectOld[numb];
-				isLuxury = ImageManager.effectLuxury[numb];
-				lomo = ImageManager.effectLomo[numb];
-				brightnessRate = ImageManager.effectBrightness[numb];
-				contrastRate = ImageManager.effectContrast[numb];
-				rotationTy = ImageManager.rotateV[numb];
-				isVertical = ImageManager.isVertical[numb];
-				positionX = ImageManager.positionX[numb];
-				positionY = ImageManager.positionY[numb];
+				isGray = ImageManager.effectGrayDummy[numb];
+				isSepia = ImageManager.effectSepiaDummy[numb];
+				isOld = ImageManager.effectOldDummy[numb];
+				isLuxury = ImageManager.effectLuxuryDummy[numb];
+				lomo = ImageManager.effectLomoDummy[numb];
+				brightnessRate = ImageManager.effectBrightnessDummy[numb];
+				contrastRate = ImageManager.effectContrastDummy[numb];
+				rotationTy = ImageManager.rotateVDummy[numb];
+				isVertical = ImageManager.isVerticalDummy[numb];
+				positionX = ImageManager.positionXDummy[numb];
+				positionY = ImageManager.positionYDummy[numb];
 					
 				if( isGray )
 				{
@@ -471,17 +545,11 @@ package com.mcard.popup
 				sliderbarBrightness.setPoint( brightnessRate );
 				sliderbarContrast.setPoint( contrastRate );				
 				
-				//component1Reset();
-				//component2Reset();
-				//component3Reset();
 				effectInit();
 			}
 		}
 		private function component1Reset( e:MouseEvent = null ):void
 		{
-			//ImageManager.positionX[numb] = positionX = 0;
-			//ImageManager.positionY[numb] = positionY = 0;
-			//ImageManager.rotateV[numb] = rotationTy = 0;
 			positionX = 0;
 			positionY = 0;
 			rotationTy = 0;
@@ -490,7 +558,6 @@ package com.mcard.popup
 			canvasWrapAngle.y = editClip.canvas.y + editClip.canvas.height / 2 ;
 			if( e != null )
 			{
-				trace( 'e != null' );
 				effectInit();
 				wrapperSet( true );
 			}	
@@ -550,7 +617,6 @@ package com.mcard.popup
 			var _mc:MovieClip = e.currentTarget as MovieClip;
 			var currentFrame:Number = ( _mc ).currentFrame;
 			
-			
 			if( currentFrame == 1 )
 			{
 				_mc.gotoAndStop( 2 );
@@ -558,22 +624,17 @@ package com.mcard.popup
 				{
 					case "btn" + Preset.EDIT_POP_GRAY_PREFIX :
 						isGray = true;
-						//trace( 'gray Click!');
 						break;
 					case "btn" + Preset.EDIT_POP_SEPIA_PREFIX :
-						//trace( 'sepia Click!');
 						isSepia = true;
 						break;
 					case "btn" + Preset.EDIT_POP_OLD_PREFIX :
-						//trace( 'old Click!');
 						isOld = true;
 						break;
 					case "btn" + Preset.EDIT_POP_LUXURY_PREFIX :
-						//trace( 'luxury Click!');
 						isLuxury = true;
 						break;
 					case "btn" + Preset.EDIT_POP_LOMO_PREFIX :
-						//trace( 'lomo Click!');
 						lomo = Preset.EDIT_POP_LOMOBOX_DATA[ lomoBox.selectedIndex ];
 						break;
 				}
@@ -584,22 +645,17 @@ package com.mcard.popup
 				{
 					case "btn" + Preset.EDIT_POP_GRAY_PREFIX :
 						isGray = false;
-						//trace( 'gray Click!');
 						break;
 					case "btn" + Preset.EDIT_POP_SEPIA_PREFIX :
-						//trace( 'sepia Click!');
 						isSepia = false;
 						break;
 					case "btn" + Preset.EDIT_POP_OLD_PREFIX :
-						//trace( 'old Click!');
 						isOld = false;
 						break;
 					case "btn" + Preset.EDIT_POP_LUXURY_PREFIX :
-						//trace( 'luxury Click!');
 						isLuxury = false;
 						break;
 					case "btn" + Preset.EDIT_POP_LOMO_PREFIX :
-						//trace( 'lomo Click!');
 						lomo = 0;
 						break;
 				}
@@ -613,7 +669,7 @@ package com.mcard.popup
 			lomo = Preset.EDIT_POP_LOMOBOX_DATA[ _combobox.selectedIndex ];
 			effectInit();
 		}
-		private function effectInit():void
+		private function effectInit( isTopInit:Boolean = true ):void
 		{
 			canvasInit();
 			
@@ -622,75 +678,127 @@ package com.mcard.popup
 			// 대비 정도 적용
 			var contrastRate:Number = this.contrastRate * 2 - 100;
 			
-			//trace( "colorMatrix.adjustColor!! : " , brightnessRate , contrastRate );
-			//colorMatrix.adjustColor( 0 , 0 , 0 , 0 );
 			colorMatrix.reset();
 			colorMatrix.adjustColor( brightnessRate , contrastRate , 0 , 0 );
-			b.filters = [ new ColorMatrixFilter( colorMatrix ) ];
+			bmList[numb].filters = [ new ColorMatrixFilter( colorMatrix ) ];
 			
 			// 흑백 , 갈샐 필터 적용
 			// 흑백 먼저 필터 주고 갈색 주면 갈색이 안먹는다.
 			// 갈색 먼저 처리하고 흑백...
-			//if( ( editClip.getChildByName( "btn" + Preset.EDIT_POP_SEPIA_PREFIX ) as MovieClip ).currentFrame == 2 )
 			if( isSepia )
 			{
-				filterCollector.setSepia( b );
+				filterCollector.setSepia( bmList[numb] );
 			}
-			//if( ( editClip.getChildByName( "btn" + Preset.EDIT_POP_GRAY_PREFIX ) as MovieClip ).currentFrame == 2 )
 			if( isGray )
 			{
-				filterCollector.setGray( b );
+				filterCollector.setGray( bmList[numb] );
 			}
 			
-			bd = b.bitmapData;
+			bd = bmList[numb].bitmapData;
 			if( bd != null )
 			{
 				// 오래된 효과 적용
-				//if( ( editClip.getChildByName( "btn" + Preset.EDIT_POP_OLD_PREFIX ) as MovieClip ).currentFrame == 2 )
 				if( isOld )
 				{
 					bd = filterCollector.backTotheFuture( bd );
 				}
-				
 				// 화사한 효과 적용
-				//if( ( editClip.getChildByName( "btn" + Preset.EDIT_POP_LUXURY_PREFIX ) as MovieClip ).currentFrame == 2 )
 				if( isLuxury )
 				{
 					bd = filterCollector.luxury( bd );
 				}
 				// 로모 적용
-				//if( ( editClip.getChildByName( "btn" + Preset.EDIT_POP_LOMO_PREFIX ) as MovieClip ).currentFrame == 2 )
 				if( lomo > 0 )
 				{
-					//bd = filterCollector.lomo( bd , Preset.EDIT_POP_LOMOBOX_DATA[ lomoBox.selectedIndex ] );
 					bd = filterCollector.lomo( bd , lomo );
 				}
 			}
+			bmList[numb].bitmapData = bd;
 			
-			b.bitmapData = bd;
 			
+			var bbMc:MovieClip = topNaviBox.getChildByName( Preset.EDIT_POP_TOPNAVI_PREFIX + numb ) as MovieClip;
+			var bb:Bitmap = ImageUtils.duplicateImage( ImageManager.origImgArr[numb] );
+			topNaviBmSetWH( bbMc , bb );
+			
+			if( bb != null )
+			{
+				bb.filters = [ new ColorMatrixFilter( colorMatrix ) ];
+				
+				// 흑백 , 갈샐 필터 적용
+				// 흑백 먼저 필터 주고 갈색 주면 갈색이 안먹는다.
+				// 갈색 먼저 처리하고 흑백...
+				if( isSepia )
+				{
+					filterCollector.setSepia( bb );
+				}
+				if( isGray )
+				{
+					filterCollector.setGray( bb );
+				}
+				
+				bbd = bb.bitmapData;
+				if( bbd != null )
+				{
+					// 오래된 효과 적용
+					if( isOld )
+					{
+						bbd = filterCollector.backTotheFuture( bbd );
+					}
+					// 화사한 효과 적용
+					if( isLuxury )
+					{
+						bbd = filterCollector.luxury( bbd );
+					}
+					// 로모 적용
+					if( lomo > 0 )
+					{
+						bbd = filterCollector.lomo( bbd , lomo );
+					}
+				}
+				
+				bb.bitmapData = bbd;
+			}
+			
+			if( !isTopInit )
+			{
+				ImageManager.positionXDummy[numb] = getPosition(true);
+				ImageManager.positionYDummy[numb] = getPosition(false);
+				ImageManager.rotateVDummy[numb] = rotationTy;
+				ImageManager.isVerticalDummy[numb] = getIsVertical( rotationTy );
+				ImageManager.effectSepiaDummy[numb] = isSepia;
+				ImageManager.effectGrayDummy[numb] = isGray;
+				ImageManager.effectOldDummy[numb] = isOld;
+				ImageManager.effectLuxuryDummy[numb] = isLuxury;
+				ImageManager.effectLomoDummy[numb] = lomo;
+				ImageManager.effectBrightnessDummy[numb] = this.brightnessRate;
+				ImageManager.effectContrastDummy[numb] = this.contrastRate;
+			}	
+		}
+		private function getIsVertical( rotation:Number ):Boolean
+		{
+			var boo:Boolean;
+			if( ( rotation / 90 ) % 2 == 0 )
+			{
+				boo = true;
+			} else {
+				boo = false;
+			}
+			return boo;
 		}
 		private function bitmapAddchild():void
 		{
 			var vc:Vector.<Number> = ImageUtils.getThumbWH( editClip.canvas.getChildByName( "bmBox" ) , editClip.canvas.getChildAt(0) );
-			//trace( "bitmapAddchild : " , vc );
 			if( ( ( rotationTy / 90 ) % 2 ) == 0 )
 			{
-				//trace(" rotation 0 180 " );
-				b.width = vc[0];
-				b.height = vc[1];
+				bmList[numb].width = vc[0];
+				bmList[numb].height = vc[1];
 			} else if( ( ( rotationTy / 90 ) % 2 ) == 1 ) {
-				//trace(" rotation 90 270 " );
-				b.width = vc[1];
-				b.height = vc[0];
+				bmList[numb].width = vc[1];
+				bmList[numb].height = vc[0];
 			} else {
-				//trace(" rotation?? " , rotationTy );
 			}
-			b.x = -b.width / 2;
-			b.y = -b.height / 2;
-			
-			// effect set
-			
+			bmList[numb].x = -bmList[numb].width / 2;
+			bmList[numb].y = -bmList[numb].height / 2;
 		}
 		private function rotationTyRotate( boo:Boolean ):void
 		{
@@ -706,17 +814,11 @@ package com.mcard.popup
 			} else if ( rotationTy >= 360 ) {
 				rotationTy -= 360;
 			}
+			ImageManager.rotateVDummy[numb] = rotationTy;
 		}
 		
 		private function getPosition( boo:Boolean = true ):Number
 		{
-			trace( bmBox.getChildAt(0).width , bmBox.getChildAt(0).height );
-			trace( canvasWrapAngleRect.width , canvasWrapAngleRect.height );
-			trace( canvasWrapAngle.x , canvasWrapAngle.y );
-			trace( editClip.canvas.x + editClip.canvas.width / 2 , editClip.canvas.y + editClip.canvas.height / 2 );
-			
-			trace( canvasWrapAngle.x - ( editClip.canvas.x + editClip.canvas.width / 2 ) );
-			trace( canvasWrapAngleRect.width - bmBox.getChildAt(0).width );
 			var __width:Number;
 			var __height:Number;
 			var movable:Number;
@@ -742,7 +844,6 @@ package com.mcard.popup
 				} else {
 					x = 0;
 				}
-				//trace( "x : " , x );
 				return x;
 			} else {	// false 이면 y 좌표
 				movable = __height - canvasWrapAngleRect.height;
@@ -755,6 +856,5 @@ package com.mcard.popup
 				return y;
 			}
 		}
-			
 	}
 }

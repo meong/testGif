@@ -1,6 +1,9 @@
 package com.mcard.popup
 {
+	import com.mcard.Setting.Preset;
+	
 	import flash.display.Sprite;
+	import flash.events.Event;
 	import flash.events.MouseEvent;
 	
 	public class CommonPop extends Sprite
@@ -53,11 +56,21 @@ package com.mcard.popup
 			{
 				popupClip.btnClose.addEventListener( MouseEvent.CLICK , closeClick );
 			}
+			if( popupClip.btnCancel != null )
+			{
+				popupClip.btnCancel.addEventListener( MouseEvent.CLICK , cancelClick );
+			}
 			
 		}
 		private function closeClick( e:MouseEvent ):void
 		{
 			hide();
+			dispatchEvent( new Event( Preset.COMMONPOP_CLOSE_CLICK_DISPATCH_STR ) );
+		}
+		private function cancelClick( e:MouseEvent ):void
+		{
+			hide();
+			dispatchEvent( new Event( Preset.COMMONPOP_CANCEL_CLICK_DISPATCH_STR ) );
 		}
 	}
 }

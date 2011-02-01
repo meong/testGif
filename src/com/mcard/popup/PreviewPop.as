@@ -18,6 +18,7 @@ package com.mcard.popup
 	import flash.net.URLRequest;
 	import flash.net.URLRequestMethod;
 	import flash.net.URLVariables;
+	import flash.text.TextField;
 	
 	import nl.demonsters.debugger.MonsterDebugger;
 	
@@ -63,6 +64,7 @@ package com.mcard.popup
 			maskBody.graphics.drawRect( 0 , 0 , previewClip.skinBox.width , previewClip.skinBox.height );
 			maskBody.graphics.endFill();
 			viewerItemEdit.mask = maskBody;
+			( previewClip.txtUrl as TextField ).selectable = false;
 		}
 		
 		public function show( skinIdx:Number ):void
@@ -117,8 +119,10 @@ package com.mcard.popup
 			request.data = variables;
 			request.method = URLRequestMethod.POST;
 			
+			MonsterDebugger.trace( this , request );
 			urlLoader.addEventListener( Event.COMPLETE , loadComplete );
 			urlLoader.load( request );
+			
 		}
 		private function chkManClick( e:MouseEvent ):void
 		{
@@ -168,7 +172,7 @@ package com.mcard.popup
 		private function loadComplete( e:Event ):void
 		{
 			dispatchEvent( new EventInData( Preset.COMMONPOP_SMS_SEND_OK , Preset.COMMONPOP_SHOW_DISPATCH_STR ) );
-			MonsterDebugger.trace( this , e.currentTarget.data );
+			//MonsterDebugger.trace( this , e.currentTarget.data );
 			//trace( e.currentTarget.data );
 		}
 		private function imgLoadComplete( e:Bitmap , dummy:Object ):void

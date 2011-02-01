@@ -7,37 +7,30 @@ package com.fwang.controller
 	public class TextfieldEditor extends EventDispatcher
 	{
 		private var textfield:TextField;
-		//private var textformat:TextFormat = new TextFormat();
-		//private var textformatAlign:TextFormat = new TextFormat();
 		
 		public function TextfieldEditor( textfield:TextField )
 		{
-			//trace("textfieldEditor init!" );
 			this.textfield = textfield;
 			textfield.alwaysShowSelection = true;
 		}
 		
 		public function setBold( _boo:Boolean = true ):void
 		{
-			//trace( "setBold" );
 			var txtformat:TextFormat = new TextFormat();
 			txtformat.bold = _boo;
 			setTextFormat( txtformat );
 		}
 		public function setItalic( _boo:Boolean ):void
 		{
-			//trace("setItalic");
 			var txtformat:TextFormat = new TextFormat();
 			txtformat.italic = _boo;
 			setTextFormat( txtformat );
 		}
 		public function setNormal():void
 		{
-			//trace("setNormal");
 		}
 		public function setFontColor( _color:uint ):void
 		{
-			//trace("setFontColor");
 			var txtformat:TextFormat = new TextFormat();
 			txtformat.color = _color;
 			setTextFormat( txtformat );
@@ -51,7 +44,6 @@ package com.fwang.controller
 		
 		public function setFont( font:String ):void
 		{
-			//trace("set font : " , font );
 			var txtformat:TextFormat = new TextFormat();
 			txtformat.font = font;
 			setTextFormat( txtformat );

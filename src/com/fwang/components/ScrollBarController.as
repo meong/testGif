@@ -52,23 +52,16 @@ package com.fwang.components
 		}
 			private function onDown( e:MouseEvent ):void
 			{
-				trace('onDown!');
-				//if( clipBody.height > bodyHeight ) {
-					barClip.startDrag( false , bounds );
-					barClip.parent.stage.addEventListener( MouseEvent.MOUSE_MOVE , onMove );
-					barClip.parent.stage.addEventListener( MouseEvent.MOUSE_UP , onUp );
-				//}
+				barClip.startDrag( false , bounds );
+				barClip.parent.stage.addEventListener( MouseEvent.MOUSE_MOVE , onMove );
+				barClip.parent.stage.addEventListener( MouseEvent.MOUSE_UP , onUp );
 			}
 				private function onMove( e:MouseEvent ):void
 				{
-					trace( 'onMove ' );
 					onMoveAction();
 				}
 					public function onMoveAction():void
 					{
-						trace('move!');
-						trace( barClip.x );
-						trace( barClip.name );
 						clipBody.y = getBodyY();						
 					}
 						private function getBodyY():Number
@@ -84,17 +77,11 @@ package com.fwang.components
 		
 		public function reset( isTween:Boolean = false ):void
 		{
-			trace("reset init!");
 			var barY:Number = 0;
-			/*square.x = clipBody.x;
-			square.y = clipBody.y;
-			square.width = clipBody.width;
-			square.height = bodyHeight;
-			*/
+			
 			if( clipBody.height > bodyHeight )
 				barY = getBodyY();
 			if( isTween ) {
-				trace("reset Tween!");
 				Tweener.addTween( clipBody , {time:0.2 , y:barY , transition:"linear" } );
 			} else {
 				clipBody.y = barY;
@@ -102,9 +89,6 @@ package com.fwang.components
 			if( barY == 0 ) {
 				Tweener.addTween( barClip , {time:0.2 , y:clipDefaultY , transition:"linear" } );
 			}
-
-			trace("bodyHeight:"+bodyHeight);
-			trace("clipBody.height:" + clipBody.height );
 		}
 		public function set maskWidth( width:Number ):void
 		{

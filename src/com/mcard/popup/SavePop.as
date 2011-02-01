@@ -10,14 +10,25 @@ package com.mcard.popup
 	
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
+	import flash.display.Loader;
 	import flash.display.MovieClip;
 	import flash.display.Sprite;
+	import flash.errors.IOError;
 	import flash.events.Event;
+	import flash.events.IOErrorEvent;
 	import flash.events.MouseEvent;
 	import flash.geom.Matrix;
+	import flash.net.URLLoader;
+	import flash.net.URLLoaderDataFormat;
+	import flash.net.URLRequest;
+	import flash.net.URLRequestMethod;
+	import flash.net.URLVariables;
+	import flash.net.navigateToURL;
 	import flash.text.TextField;
 	import flash.utils.ByteArray;
 	import flash.utils.Timer;
+	
+	import nl.demonsters.debugger.MonsterDebugger;
 	
 	public class SavePop extends Sprite
 	{
@@ -35,6 +46,9 @@ package com.mcard.popup
 		private var saveCompleteStatus:Number = 0;
 		private var baVector:Vector.<ByteArray> = new Vector.<ByteArray>;
 		private var parameters:Object = new Object();
+		
+		public var manTel:String;
+		public var girlTel:String;
 		
 		public function SavePop()
 		{
@@ -104,35 +118,47 @@ package com.mcard.popup
 		}
 		private function imageMakeMain():ByteArray
 		{
+			var parameterText:URLVariables = new URLVariables();
+			var ur:URLRequest = new URLRequest();
+			var ul:URLLoader = new URLLoader();
+			
+			parameterText.TitleX1 = mainMc.getChildByName( Preset.VIEWERITEM_TITLE_NAME ).x;
+			parameterText.TitleY1 = mainMc.getChildByName( Preset.VIEWERITEM_TITLE_NAME ).y;
+			parameterText.TitleIndex = mainMc._titleItemNumb;
+			parameterText.TitleAlpha = mainMc._titleItemAlpha;
+			parameterText.TitleColor = mainMc._titleItemColor;
+			
+			parameterText.ManX1 = mainMc.getChildByName( Preset.VIEWERITEM_MAN_NAME ).x;
+			parameterText.ManY1 = mainMc.getChildByName( Preset.VIEWERITEM_MAN_NAME ).y;
+			parameterText.ManX2 = mainMc.getChildByName( Preset.VIEWERITEM_MAN_NAME ).x + mainMc.getChildByName( Preset.VIEWERITEM_MAN_NAME ).width;
+			parameterText.ManY2 = mainMc.getChildByName( Preset.VIEWERITEM_MAN_NAME ).y + mainMc.getChildByName( Preset.VIEWERITEM_MAN_NAME ).height;
+			parameterText.ManIndex = mainMc._manItemNumb;
+			parameterText.ManTel = manTel;
+			
+			parameterText.GirlX1 = mainMc.getChildByName( Preset.VIEWERITEM_GIRL_NAME ).x;
+			parameterText.GirlY1 = mainMc.getChildByName( Preset.VIEWERITEM_GIRL_NAME ).y;
+			parameterText.GirlX2 = mainMc.getChildByName( Preset.VIEWERITEM_GIRL_NAME ).x + mainMc.getChildByName( Preset.VIEWERITEM_GIRL_NAME ).width;
+			parameterText.GirlY2 = mainMc.getChildByName( Preset.VIEWERITEM_GIRL_NAME ).y + mainMc.getChildByName( Preset.VIEWERITEM_GIRL_NAME ).height;
+			parameterText.GirlIndex = mainMc._girlItemNumb;
+			parameterText.GirlTel = girlTel;
+			
+			parameterText.TextfieldX = mainMc.getChildByName( Preset.VIEWERITEM_TEXTFIELD_NAME ).x;
+			parameterText.TextfieldY = mainMc.getChildByName( Preset.VIEWERITEM_TEXTFIELD_NAME ).y;
+			parameterText.TextfieldW = mainMc.getChildByName( Preset.VIEWERITEM_TEXTFIELD_NAME ).width;
+			parameterText.TextfieldH = mainMc.getChildByName( Preset.VIEWERITEM_TEXTFIELD_NAME ).height;
+			parameterText.TextfieldText = ( mainMc.getChildByName( Preset.VIEWERITEM_TEXTFIELD_NAME ) as TextField ).htmlText;
+			
+			parameterText.TextfieldBgColor = mainMc._textfieldBgColor;
+			parameterText.TextfieldBgAlpha = mainMc._textfieldBgAlpha;
+			
+			ur.url = MCard.xml.url[2].@src;
+			ur.data = parameterText;
+			ur.method = URLRequestMethod.POST;
+			
+			ul.load( ur );
+			
 			var bmd:BitmapData = new BitmapData( Preset.SKIN_WH[0] , Preset.SKIN_WH[1] );
 			bmd.draw( mainMc );
-			
-			parameters.TitleX1 = mainMc.getChildByName( Preset.VIEWERITEM_TITLE_NAME ).x;
-			parameters.TitleY1 = mainMc.getChildByName( Preset.VIEWERITEM_TITLE_NAME ).y;
-			parameters.TitleIndex = mainMc._titleItemNumb;
-			parameters.TitleAlpha = mainMc._titleItemAlpha;
-			parameters.TitleColor = mainMc._titleItemColor;
-			
-			parameters.ManX1 = mainMc.getChildByName( Preset.VIEWERITEM_MAN_NAME ).x;
-			parameters.ManY1 = mainMc.getChildByName( Preset.VIEWERITEM_MAN_NAME ).y;
-			parameters.ManX2 = mainMc.getChildByName( Preset.VIEWERITEM_MAN_NAME ).x + mainMc.getChildByName( Preset.VIEWERITEM_MAN_NAME ).width;
-			parameters.ManY2 = mainMc.getChildByName( Preset.VIEWERITEM_MAN_NAME ).y + mainMc.getChildByName( Preset.VIEWERITEM_MAN_NAME ).height;
-			parameters.ManIndex = mainMc._manItemNumb;
-			
-			parameters.GirlX1 = mainMc.getChildByName( Preset.VIEWERITEM_GIRL_NAME ).x;
-			parameters.GirlY1 = mainMc.getChildByName( Preset.VIEWERITEM_GIRL_NAME ).y;
-			parameters.GirlX2 = mainMc.getChildByName( Preset.VIEWERITEM_GIRL_NAME ).x + mainMc.getChildByName( Preset.VIEWERITEM_GIRL_NAME ).width;
-			parameters.GirlY2 = mainMc.getChildByName( Preset.VIEWERITEM_GIRL_NAME ).y + mainMc.getChildByName( Preset.VIEWERITEM_GIRL_NAME ).height;
-			parameters.GirlIndex = mainMc._girlItemNumb;
-			
-			parameters.TextfieldX = mainMc.getChildByName( Preset.VIEWERITEM_TEXTFIELD_NAME ).x;
-			parameters.TextfieldY = mainMc.getChildByName( Preset.VIEWERITEM_TEXTFIELD_NAME ).y;
-			parameters.TextfieldW = mainMc.getChildByName( Preset.VIEWERITEM_TEXTFIELD_NAME ).width;
-			parameters.TextfieldH = mainMc.getChildByName( Preset.VIEWERITEM_TEXTFIELD_NAME ).height;
-			parameters.TextfieldText = ( mainMc.getChildByName( Preset.VIEWERITEM_TEXTFIELD_NAME ) as TextField ).htmlText;
-			
-			parameters.TextfieldBgColor = mainMc._textfieldBgColor;
-			parameters.TextfieldBgAlpha = mainMc._textfieldBgAlpha;
 			
 			var ba:ByteArray = new JPEGEncoder( Preset.JPEG_QUALITY ).encode( bmd );
 			return ba;
@@ -177,21 +203,22 @@ package com.mcard.popup
 			var byArray:ByteArray;
 			saveMainStatus = true;
 			parameters.member_key = MCard.xml.member[0].@member_key;
-			parameters.image_id = "main";
+			parameters.image_id = "0";
 			byArray = imageMakeMain();
-			imgUploader.sendImage( MCard.xml.url[1].@src , "main.jpg" , byArray , parameters );
+			imgUploader.sendImage( MCard.xml.url[1].@src , "0.jpg" , byArray , parameters );
 		}
 		private function saveActionDummy( ty:Number ):void
 		{
+			var ty2:Number = ty + 1;
 			saveStatus++;
 			parameters = new Object();
 			parameters.member_key = MCard.xml.member[0].@member_key;
-			parameters.image_id = ty;
+			parameters.image_id = ty2;
 			
 			if( ImageManager.imgArr[ty] )
 			{
 				baVector[ty] = imageMake( ImageManager.imgArr[ty] );
-				imgUploader.sendImage( MCard.xml.url[1].@src , ty + ".jpg" , baVector[ty] , parameters );
+				imgUploader.sendImage( MCard.xml.url[1].@src , ty2 + ".jpg" , baVector[ty] , parameters );
 			}
 			
 			if( saveStatus < ImageManager.imgArr.length )
@@ -228,6 +255,13 @@ package com.mcard.popup
 		{
 			trace(" saveComplete " );
 		}
-			
+		private function textSendComplete( e:Event ):void
+		{
+			trace( e.currentTarget.toString() );
+		}
+		private function textSendError( e:IOErrorEvent ):void
+		{
+			trace( e.currentTarget.toString() );
+		}
 	}
 }

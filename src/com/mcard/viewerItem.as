@@ -17,6 +17,7 @@ package com.mcard
 	import flash.display.Sprite;
 	import flash.events.Event;
 	import flash.events.MouseEvent;
+	import flash.geom.Rectangle;
 	import flash.text.TextField;
 	import flash.text.TextFormat;
 	
@@ -170,26 +171,6 @@ package com.mcard
 			mcMask.graphics.endFill();
 			this.mask = mcMask;
 			
-			/*var bb:Bitmap;
-			bb = ImageUtils.duplicateImage( ImageTitleManager.titleImgArr[titleItemNumb] );
-			bb.smoothing = true;
-			titleItem.addChild( bb );
-			titleItem.name = Preset.VIEWERITEM_TITLE_NAME;
-			
-			
-			bb = ImageUtils.duplicateImage( ImageManManager.manImgArr[manItemNumb] );
-			bb.smoothing = true;
-			manItem.addChild( bb );
-			manItem.name = Preset.VIEWERITEM_MAN_NAME;
-			
-			bb = ImageUtils.duplicateImage( ImageGirlManager.girlImgArr[girlItemNumb] );
-			bb.smoothing = true;
-			girlItem.addChild( bb );
-			girlItem.name = Preset.VIEWERITEM_GIRL_NAME;
-			*/
-			
-			//var titleMc:MovieClip = DisplayObjectUtils.duplicate( ImageTitleManager.titleImgArr[MCard.xml.skin[numb].skinTitle.@index] ) as MovieClip;
-			
 			var titleMc:MovieClip;
 			var manMc:MovieClip;
 			var girlMc:MovieClip;
@@ -197,15 +178,9 @@ package com.mcard
 			if( isEdit )
 			{
 				if( isViewer ){
-					skinLength = MCard.xml.skin.length()+1;
-					//titleMc = ImageTitleManager.titleImgArr[MCard.xml.skin[numb].skinTitle.@index][MCard.xml.skin.length()+1];
-					//manMc = ImageManManager.manImgArr[MCard.xml.skin[numb].skinTitle.@index][MCard.xml.skin.length()+1];
-					//girlMc = ImageGirlManager.girlImgArr[MCard.xml.skin[numb].skinTitle.@index][MCard.xml.skin.length()+1];
-				} else {
 					skinLength = MCard.xml.skin.length()+2;
-					//titleMc = ImageTitleManager.titleImgArr[MCard.xml.skin[numb].skinTitle.@index][MCard.xml.skin.length()+2];
-					//manMc = ImageManManager.manImgArr[MCard.xml.skin[numb].skinTitle.@index][MCard.xml.skin.length()+2];
-					//girlMc = ImageGirlManager.girlImgArr[MCard.xml.skin[numb].skinTitle.@index][MCard.xml.skin.length()+2];
+				} else {
+					skinLength = MCard.xml.skin.length()+3;
 				}
 			}
 			
@@ -258,18 +233,6 @@ package com.mcard
 			txtfd.mouseEnabled = false;
 			txtfdBg.name = Preset.VIEWERITEM_TEXTFIELD_BG_NAME;
 			
-			//if( MCard.xml.skin[numb].skinTxt.@bg != "" ) 
-			//{
-			/*
-			trace("textfield background mc init!");
-			txtfdBg.graphics.beginFill( MCard.xml.skin[numb].skinTxt.@bg , MCard.xml.skin[numb].skinTxt.@bgAlpha );
-			txtfdBg.graphics.drawRect( 0 , 0 , MCard.xml.skin[numb].skinTxt.@width , MCard.xml.skin[numb].skinTxt.@height );
-			txtfdBg.graphics.endFill();
-			*/
-			
-			//}
-			
-			
 			txtfdStyle.align = MCard.xml.skin[numb].skinTxt.@align;
 			
 			var boldBoo:Number = 0;
@@ -286,14 +249,14 @@ package com.mcard
 			txtfdStyle.size = MCard.xml.skin[numb].skinTxt.@size;
 			txtfdStyle.font = MCard.xml.skin[numb].skinTxt.@style;
 			txtfdStyle.letterSpacing = MCard.xml.skin[numb].skinTxt.@letterspacing;
-			txtfdStyleArr[0] = txtfdStyle;
+			//txtfdStyleArr[0] = txtfdStyle;
 			
 			if( txtfdBgAC.length )
 			{
 				txtfdBgAC.length = 0;
 				textfieldSetFirst();
 			} else {
-				textfieldSet( ( MCard.xml.member as XMLList ).toString() , MCard.xml.skin[numb].skinTxt.@bg , MCard.xml.skin[numb].skinTxt.@bgAlpha , txtfdStyleArr );
+				textfieldSet( ( MCard.xml.member as XMLList ).toString() , MCard.xml.skin[numb].skinTxt.@bg , MCard.xml.skin[numb].skinTxt.@bgAlpha , txtfdStyle );
 			}
 		}
 		private function setView():void
@@ -364,68 +327,42 @@ package com.mcard
 		public function itemSetting( ty:String , _numb:Number ):void
 		{
 			var _mc:MovieClip;
-			var bb:Bitmap;
+			
 			switch( ty )
 			{
 				case Preset.TITLE_ITEM_STRING :
+					removeTitleMask();
 					titleItemNumb = _numb;
-					DisplayObjectUtils.removeChilds( titleItem );					//titleItem.removeChildAt( 0 );
+					DisplayObjectUtils.removeChilds( titleItem );
 					_mc = ImageTitleManager.titleImgArr[_numb][skinLength];
-					//bb.smoothing = true;
 					titleItem.addChild( _mc );
 					break;
 				case Preset.MAN_ITEM_STRING :
 					manItemNumb = _numb;
-					DisplayObjectUtils.removeChilds( manItem );						//manItem.removeChildAt( 0 );
+					DisplayObjectUtils.removeChilds( manItem );
 					_mc = ImageManManager.manImgArr[_numb][skinLength];
-					//bb.smoothing = true;
 					manItem.addChild( _mc );
 					break;
 				case Preset.GIRL_ITEM_STRING :
 					girlItemNumb = _numb;
-					DisplayObjectUtils.removeChilds( girlItem );					//girlItem.removeChildAt( 0 );
+					DisplayObjectUtils.removeChilds( girlItem );
 					_mc = ImageGirlManager.girlImgArr[_numb][skinLength];
-					//bb.smoothing = true;
 					girlItem.addChild( _mc );
 					break;
 			}
-			/*var bb:Bitmap; 
-			switch( ty )
-			{
-			case Preset.TITLE_ITEM_STRING :
-			titleItemNumb = numb;
-			DisplayObjectUtils.removeChilds( titleItem );					//titleItem.removeChildAt( 0 );
-			bb = ImageTitleManager.titleImgArr[numb];
-			bb.smoothing = true;
-			titleItem.addChild( bb );
-			break;
-			case Preset.MAN_ITEM_STRING :
-			manItemNumb = numb;
-			DisplayObjectUtils.removeChilds( manItem );						//manItem.removeChildAt( 0 );
-			bb = ImageManManager.manImgArr[numb];
-			bb.smoothing = true;
-			manItem.addChild( bb );
-			break;
-			case Preset.GIRL_ITEM_STRING :
-			girlItemNumb = numb;
-			DisplayObjectUtils.removeChilds( girlItem );					//girlItem.removeChildAt( 0 );
-			bb = ImageGirlManager.girlImgArr[numb];
-			bb.smoothing = true;
-			girlItem.addChild( bb );
-			break;
-			}*/
 		}
 		public function titleSetting( _alpha:Number , _color:Number ):void
 		{
 			titleItemAlpha = _alpha;
 			titleItemColor = _color;
 			titleItem.alpha = titleItemAlpha;
-			if( titleItem.numChildren > 1 )
+			/*if( titleItem.numChildren > 1 )
 			{
 				titleItem.getChildAt( 0 ).mask = null;
 				titleItem.removeChildAt( 0 );
 				DisplayObjectUtils.removeChilds( titleItem , 1 );
-			}
+			}*/
+			removeTitleMask();
 			
 			if( !isNaN( _color ) )
 			{
@@ -436,69 +373,30 @@ package com.mcard
 				titleItem.addChildAt( colorMc , 0 );
 				colorMc.mask = titleItem.getChildAt( 1 );
 			}
-			
-			/*
-			var bm:Bitmap = titleItem.getChildAt(0) as Bitmap;
-			var bmData:BitmapData = bm.bitmapData;
-			var bmData2:BitmapData = new BitmapData( bmData.width , bmData.height );
-			if( isNaN( _color ) && origBmData != null )
-			{
-			bm.bitmapData = origBmData;
-			} else if ( !isNaN( _color ) ){
-			for( var ii:Number = 0 ; ii < bmData.width ; ii++ )
-			{
-			for ( var jj:Number = 0 ; jj < bmData.height ; jj++ )
-			{
-			var tmp32:uint = bmData.getPixel32( ii , jj );
-			var tmp:uint = bmData.getPixel( ii , jj );
-			var setColor:uint = tmp32 - tmp + _color;
-			
-			if( tmp != 0 || _color == 0 )
-			{
-			bmData2.setPixel32( ii , jj , setColor );
-			} else {
-			bmData2.setPixel32( ii , jj , 0x00000000 );
-			}
-			}
-			}
-			bm.bitmapData = bmData2;
-			bm.smoothing = true;
-			}
-			*/
 		}
-		/**
-		 * 
-		 * @param _text
-		 * @param _color
-		 * @param _alpha
-		 * @param _textformatArray
-		 * 
-		 */
-		public function textfieldSet( _text:String , _color:uint , _alpha:Number , _textformatArray:Vector.<TextFormat> = null ):void
+		private function removeTitleMask():void
+		{
+			if( titleItem.numChildren > 1 )
+			{
+				titleItem.getChildAt( 0 ).mask = null;
+				titleItem.removeChildAt( 0 );
+				DisplayObjectUtils.removeChilds( titleItem , 1 );
+			}
+		}
+		public function textfieldSet( _text:String , _color:Number , _alpha:Number , _textformat:TextFormat = null ):void
 		{
 			txtfdBgColor = _color;
 			txtfdBgAlpha = _alpha;
 			
-			if( _textformatArray == null )
+			if( _textformat == null )
 			{
 				txtfd.htmlText = _text;
 			} else {
 				txtfd.text = _text.replace( /\r\n/g, "\n" );
-				
-				if( _textformatArray.length == 1)
-				{
-					txtfd.setTextFormat( _textformatArray[0] );
-				} else if ( 1 )
-				{
-					for( var ii:Number = 0 ; ii < _textformatArray.length ; ii++ )
-					{
-						_textformatArray[ii].size = ( _textformatArray[ii].size as Number );
-						txtfd.setTextFormat( _textformatArray[ii] , ii , ii + 1 );
-					}
-				}
+				txtfd.setTextFormat( _textformat );
 			}
 			txtfdBg.graphics.clear();
-			if( txtfdBgColor != 0 && !isNaN( txtfdBgColor ) )
+			if( !isNaN( txtfdBgColor ) )
 			{
 				txtfdBg.graphics.beginFill( txtfdBgColor , txtfdBgAlpha );
 				txtfdBg.graphics.drawRect( 0 , 0 , MCard.xml.skin[numb].skinTxt.@width , MCard.xml.skin[numb].skinTxt.@height );
@@ -512,7 +410,7 @@ package com.mcard
 			txtfd.condenseWhite = true;
 			txtfd.htmlText = MemberManager.textfieldText;
 			txtfdBg.graphics.clear();
-			if( txtfdBgColor != 0 && !isNaN( txtfdBgColor ) )
+			if( !isNaN( txtfdBgColor ) )
 			{
 				txtfdBg.graphics.beginFill( txtfdBgColor , txtfdBgAlpha );
 				txtfdBg.graphics.drawRect( 0 , 0 , MemberManager.textfieldWidth , MemberManager.textfieldHeight );
@@ -548,41 +446,31 @@ package com.mcard
 			return txtfdBgAlpha;
 		}
 		
-		/*
-		private function titleLoadComplete( b:Bitmap , dummy:Object ):void
-		{
-		titleItem.addChild( b );
-		}
-		private function manLoadComplete( b:Bitmap , dummy:Object ):void
-		{
-		manItem.addChild( b );
-		}
-		private function girlLoadComplete( b:Bitmap , dummy:Object ):void
-		{
-		girlItem.addChild( b );
-		}
-		*/
-		
 		private function titleItemDown( e:MouseEvent ):void
 		{
 			if( isDrag )
 			{
-				( e.currentTarget as MovieClip ).startDrag();
-				
+				var _mc:MovieClip = e.currentTarget as MovieClip;
+				var bounds:Rectangle = new Rectangle(0 , 0 , Preset.SKIN_WH[0] - _mc.width , Preset.SKIN_WH[1] - _mc.height );
+				_mc.startDrag( false , bounds );
 			}			
 		}
 		private function manItemDown( e:MouseEvent ):void
 		{
 			if( isDrag )
 			{
-				( e.currentTarget as MovieClip ).startDrag();
+				var _mc:MovieClip = e.currentTarget as MovieClip;
+				var bounds:Rectangle = new Rectangle(0 , 0 , Preset.SKIN_WH[0] - _mc.width , Preset.SKIN_WH[1] - _mc.height );
+				_mc.startDrag( false , bounds );
 			}			
 		}
 		private function girlItemDown( e:MouseEvent ):void
 		{
 			if( isDrag )
 			{
-				( e.currentTarget as MovieClip ).startDrag();
+				var _mc:MovieClip = e.currentTarget as MovieClip;
+				var bounds:Rectangle = new Rectangle(0 , 0 , Preset.SKIN_WH[0] - _mc.width , Preset.SKIN_WH[1] - _mc.height );
+				_mc.startDrag( false , bounds );
 			}
 		}
 		private function titleItemUp( e:MouseEvent ):void

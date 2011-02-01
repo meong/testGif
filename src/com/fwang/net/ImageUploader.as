@@ -12,6 +12,8 @@ package com.fwang.net
 	import flash.net.URLRequestMethod;
 	import flash.utils.ByteArray;
 	
+	import nl.demonsters.debugger.MonsterDebugger;
+	
 	public class ImageUploader extends EventDispatcher
 	{
 		public static const DISPATCHER_STR:String = "IMAGE_UPLOADER_DISPATCH";
@@ -33,7 +35,7 @@ package com.fwang.net
 					var ul:URLLoader = new URLLoader();
 					ur.url = url;
 					ur.contentType = 'multipart/form-data; boundary=' + UploadPostHelper.getBoundary();
-					ur.method = URLRequestMethod.POST;
+					ur.method = URLRequestMethod.POST; 
 					
 					ur.data = UploadPostHelper.getPostData( fileName , byteArray , parameters );
 					ur.requestHeaders.push(new URLRequestHeader('Cache-Control', 'no-cache'));
@@ -41,6 +43,7 @@ package com.fwang.net
 					ul.dataFormat = URLLoaderDataFormat.BINARY;
 					ul.addEventListener( Event.COMPLETE , uploadJPGEventListener );
 					ul.load(ur);
+					MonsterDebugger.trace( this , parameters );
 				//}	
 			} else {
 				new FileReference().save( byteArray , fileName );

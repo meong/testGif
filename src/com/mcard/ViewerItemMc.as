@@ -56,7 +56,8 @@ package com.mcard
 		{
 			if( mcDummy.numChildren )
 				mcDummy.removeChildAt( 0 );
-			this.b = ImageUtils.duplicateImage( b );
+			//this.b = ImageUtils.duplicateImage( b );
+			this.b = b;
 			if( b )
 			{
 				setDefault();
@@ -206,7 +207,7 @@ package com.mcard
 			} else {
 				bMap = ImageUtils.duplicateImage( b );
 			}
-			
+
 			if( ImageManager.isVertical[numb] )
 			{
 				bMap.width = _width;

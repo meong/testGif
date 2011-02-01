@@ -32,7 +32,9 @@ package
 	import flash.display.MovieClip;
 	import flash.display.Sprite;
 	import flash.events.Event;
+	import flash.events.MouseEvent;
 	import flash.net.URLRequest;
+	import flash.system.System;
 	
 	import nl.demonsters.debugger.MonsterDebugger;
 	
@@ -49,7 +51,6 @@ package
 		private var savePop:SavePop = new SavePop();
 		private var viewerItemEdit:ViewerItemEdit = new ViewerItemEdit();
 		private var editPop:EditPop = new EditPop();
-		//private var imageSaveController:ImageSaveController = new ImageSaveController();
 		
 		private var topNavi:TopNavi = new TopNavi();
 		private var body01:Stage01 = new Stage01();
@@ -72,9 +73,6 @@ package
 		private var girlLoadStatus:Number = 0;
 		
 		private var loaderVec:Vector.<LoaderInfo> = new Vector.<LoaderInfo>;
-		//private var loader1Vec:Vector.<LoaderInfo> = new Vector.<LoaderInfo>;
-		//private var loader2Vec:Vector.<LoaderInfo> = new Vector.<LoaderInfo>;
-		//private var loader3Vec:Vector.<LoaderInfo> = new Vector.<LoaderInfo>;
 		private var loader1Vec:Vector.<Vector.<LoaderInfo>> = new Vector.<Vector.<LoaderInfo>>;
 		private var loader2Vec:Vector.<Vector.<LoaderInfo>> = new Vector.<Vector.<LoaderInfo>>;
 		private var loader3Vec:Vector.<Vector.<LoaderInfo>> = new Vector.<Vector.<LoaderInfo>>;
@@ -87,13 +85,12 @@ package
 		private var body02IsStageInit:Boolean = false;
 		private var topNaviIsStageInit:Boolean = false;
 		private var editPopIsStageInit:Boolean = false;
-		
+		private const SWF_LOAD_SPEAR:Number = 3;
 		// debuger
 		private var debuger:MonsterDebugger = new MonsterDebugger();
 		
 		public function MCard()
 		{
-			trace("init11122");
 			setView();
 			setListener();
 			setDefault();
@@ -119,7 +116,6 @@ package
 			
 			body01.addEventListener( "next" , nextStep );
 			body01.addEventListener( "preview" , previewShow1 );
-			//body01.addEventListener( "preview_mousedown" , savePopSaveShow );			
 			body01.addEventListener( Preset.EVENT_STR_SAVE_DOWN , savePopShow1 );
 			body01.addEventListener( Preset.DISPATCH_STAGEINIT_COMPLETE , stageInitComplete );
 			
@@ -138,8 +134,8 @@ package
 			
 			editPop.addEventListener( "imgEditSet" , imgEditSet ); 
 			editPop.addEventListener( Preset.DISPATCH_STAGEINIT_COMPLETE , stageInitComplete );
-			//savePop.addEventListener( Preset.SAVEPOP_DISPATCH_REQUEST_BITMAP , receiveSaveBitmap );
-			//imageSaveController.addEventListener( Preset.EVENT_STR_SAVE_COMPLETE , imageSaveComplete );
+			editPop.addEventListener( Preset.EVENT_STR_EDITPOP_CLOSE , editPopClose );
+			stage.addEventListener( MouseEvent.MOUSE_UP , stageMouseUp );
 		}
 		private function setDefault():void
 		{
@@ -160,12 +156,11 @@ package
 			savePop.hide();
 			editPop.hide();
 			
-			//xmlLoader.load( Preset.SITE_URL + Preset.LOAD_URL );
 			if( stage.loaderInfo.parameters.remoteXML )
 			{
+				MonsterDebugger.trace( this , stage.loaderInfo.parameters.remoteXML );
 				xmlLoader.load( Preset.SITE_URL + stage.loaderInfo.parameters.remoteXML );
 			} else {
-				trace( Preset.SITE_URL + Preset.LOAD_URL );
 				xmlLoader.load( Preset.SITE_URL + Preset.LOAD_URL );
 			}
 		}
@@ -213,7 +208,12 @@ package
 				memberManager.setTextfieldWidth( xml.isFirst[0].textfield[0].@width );
 				memberManager.setTextfieldHeight( xml.isFirst[0].textfield[0].@height );
 				memberManager.setTextfieldText( xml.isFirst[0].textfield[0] );
-				memberManager.setTextfieldBgColor( xml.isFirst[0].bg[0].@color );
+				var isFirstBgColor:Number = NaN;
+				if( xml.isFirst[0].bg[0].@color != "" )
+				{
+					isFirstBgColor = xml.isFirst[0].bg[0].@color;
+				}
+				memberManager.setTextfieldBgColor( isFirstBgColor );
 				memberManager.setTextfieldBgAlpha( xml.isFirst[0].bg[0].@alpha );
 			}
 			
@@ -236,18 +236,16 @@ package
 			}
 			
 			// title man girl swf load count set
-			titleManager.setImgCnt( xml.title.length() + 2 );
-			manManager.setImgCnt( xml.title.length() + 2 );
-			girlManager.setImgCnt( xml.title.length() + 2 );
+			titleManager.setImgCnt( xml.title.length() + SWF_LOAD_SPEAR );
+			manManager.setImgCnt( xml.title.length() + SWF_LOAD_SPEAR );
+			girlManager.setImgCnt( xml.title.length() + SWF_LOAD_SPEAR );
 			// title manager set
 			for( ii = 0 ; ii < xml.title.length() ; ii++ )
 			{
 				loader1Vec[ii] = new Vector.<LoaderInfo>;
-				for( jj = 0 ; jj <= xml.skin.length() + 2 ; jj++ )
+				for( jj = 0 ; jj <= xml.skin.length() + SWF_LOAD_SPEAR ; jj++ )
 				{
 					titleLoadStatus++;
-					//titleLoader = new SingleImgLoader();
-					//titleLoader.loaderSetup( Preset.SITE_URL + xml.title[ii].@src , titleLoadSet , ii );
 					lor = new Loader();
 					loader1Vec[ii][jj] = lor.contentLoaderInfo;
 					lor.load( new URLRequest( Preset.SITE_URL + xml.title[ii].@src ) );
@@ -259,11 +257,9 @@ package
 			for( ii = 0 ; ii < xml.man.length() ; ii++ )
 			{
 				loader2Vec[ii] = new Vector.<LoaderInfo>;
-				for( jj = 0 ; jj <= xml.skin.length() + 2 ; jj++ )
+				for( jj = 0 ; jj <= xml.skin.length() + SWF_LOAD_SPEAR ; jj++ )
 				{
 					manLoadStatus++;
-					//manLoader = new SingleImgLoader();
-					//manLoader.loaderSetup( Preset.SITE_URL + xml.man[ii].@src , manLoadSet , ii );
 					lor = new Loader();
 					loader2Vec[ii][jj] = lor.contentLoaderInfo;
 					lor.load( new URLRequest( Preset.SITE_URL + xml.man[ii].@src ) );
@@ -275,11 +271,9 @@ package
 			for( ii = 0 ; ii < xml.girl.length() ; ii++ )
 			{
 				loader3Vec[ii] = new Vector.<LoaderInfo>;
-				for( jj = 0 ; jj <= xml.skin.length() + 2 ; jj++ )
+				for( jj = 0 ; jj <= xml.skin.length() + SWF_LOAD_SPEAR ; jj++ )
 				{
 					girlLoadStatus++;
-					//girlLoader = new SingleImgLoader();
-					//girlLoader.loaderSetup( Preset.SITE_URL + xml.girl[ii].@src , girlLoadSet , ii );
 					lor = new Loader();
 					loader3Vec[ii][jj] = lor.contentLoaderInfo;
 					lor.load( new URLRequest( Preset.SITE_URL + xml.girl[ii].@src ) );
@@ -331,11 +325,10 @@ package
 			}
 			stageInitCk();
 		}
-		//private function titleLoadSet( b:Bitmap , ii:Number ):void
+		
 		private function titleLoadSet( e:Event ):void
 		{
 			titleLoadStatus--
-			//titleManager.setImg( ii , b );
 			var ii:Number = 0;
 			var jj:Number = 0;
 			for( ii = 0 ; ii < loader1Vec.length ; ii++ )
@@ -350,11 +343,10 @@ package
 			}
 			stageInitCk();
 		}
-		//private function manLoadSet( b:Bitmap , ii:Number ):void
+		
 		private function manLoadSet( e:Event ):void
 		{
 			manLoadStatus--
-			//manManager.setImg( ii , b );
 			var ii:Number = 0;
 			var jj:Number = 0;
 			for( ii = 0 ; ii < loader2Vec.length ; ii++ )
@@ -369,11 +361,10 @@ package
 			}
 			stageInitCk();
 		}
-		//private function girlLoadSet( b:Bitmap , ii:Number ):void
+		
 		private function girlLoadSet( e:Event ):void
 		{
 			girlLoadStatus--
-			//girlManager.setImg( ii , b );
 			var ii:Number = 0;
 			var jj:Number = 0;
 			for( ii = 0 ; ii < loader2Vec.length ; ii++ )
@@ -411,10 +402,76 @@ package
 			// data.bitmap 이 null 로 넘어 오면 해당 idx 삭제.
 			if( data.bitmap != null )
 			{
-				imgManager.setImg( idx, data.bitmap );
-				imgManager.setOrigImg( idx , data.bitmap );
-				imgManager.setThumb( idx , data.bitmap );
+				if( data.isFirst )
+				{
+					imgManager.setImg( idx, data.bitmap );
+					imgManager.setOrigImg( idx , data.bitmap );
+					imgManager.setThumb( idx , data.bitmap );
+				} else {
+					imgManager.setImg( idx, data.bitmap , false );
+					imgManager.setOrigImg( idx , data.origBitmap );
+				}
+				
 				stageInit( idx , data.isFirst );
+				if( !isNaN( data.swapBeginIndex ) && !isNaN( data.swapEndIndex ) )
+				{
+					//  이미지 이동일 경우 시작점과 끝점을 받아서  이미지 보정 데이타도 옮긴다.
+					var dummyData:EventInDataClass = new EventInDataClass( 99 );
+					var ii : Number;
+					
+					// dummy에 임시로 담는다.
+					dummyData.rotate = ImageManager.rotateV[data.swapBeginIndex];
+					dummyData.positionX = ImageManager.positionX[data.swapBeginIndex];
+					dummyData.positionY = ImageManager.positionY[data.swapBeginIndex];
+					dummyData.effectSepia = ImageManager.effectSepia[data.swapBeginIndex];
+					dummyData.effectGray = ImageManager.effectGray[data.swapBeginIndex];
+					dummyData.effectOld = ImageManager.effectOld[data.swapBeginIndex];
+					dummyData.effectLuxury = ImageManager.effectLuxury[data.swapBeginIndex];
+					dummyData.effectLomo = ImageManager.effectLomo[data.swapBeginIndex];
+					dummyData.effectBrightness = ImageManager.effectBrightness[data.swapBeginIndex];
+					dummyData.effectContrast = ImageManager.effectContrast[data.swapBeginIndex];
+					
+					if( data.swapBeginIndex > data.swapEndIndex )
+					{
+						for( ii = data.swapBeginIndex - 1 ; ii >= data.swapEndIndex ; ii-- )
+						{
+							ImageManager.rotateV[ii + 1] = ImageManager.rotateV[ii];
+							ImageManager.positionX[ii + 1] = ImageManager.positionX[ii];
+							ImageManager.positionY[ii + 1] = ImageManager.positionY[ii];
+							ImageManager.effectSepia[ii + 1] = ImageManager.effectSepia[ii];
+							ImageManager.effectGray[ii + 1] = ImageManager.effectGray[ii];
+							ImageManager.effectOld[ii + 1] = ImageManager.effectOld[ii];
+							ImageManager.effectLuxury[ii + 1] = ImageManager.effectLuxury[ii];
+							ImageManager.effectLomo[ii + 1] = ImageManager.effectLomo[ii];
+							ImageManager.effectBrightness[ii + 1] = ImageManager.effectBrightness[ii];
+							ImageManager.effectContrast[ii + 1] = ImageManager.effectContrast[ii];
+						}
+					} else {
+						for( ii = data.swapBeginIndex + 1 ; ii <= data.swapEndIndex ; ii++ )
+						{
+							ImageManager.rotateV[ii - 1] = ImageManager.rotateV[ii];
+							ImageManager.positionX[ii - 1] = ImageManager.positionX[ii];
+							ImageManager.positionY[ii - 1] = ImageManager.positionY[ii];
+							ImageManager.effectSepia[ii - 1] = ImageManager.effectSepia[ii];
+							ImageManager.effectGray[ii - 1] = ImageManager.effectGray[ii];
+							ImageManager.effectOld[ii - 1] = ImageManager.effectOld[ii];
+							ImageManager.effectLuxury[ii - 1] = ImageManager.effectLuxury[ii];
+							ImageManager.effectLomo[ii - 1] = ImageManager.effectLomo[ii];
+							ImageManager.effectBrightness[ii - 1] = ImageManager.effectBrightness[ii];
+							ImageManager.effectContrast[ii - 1] = ImageManager.effectContrast[ii];
+						}
+					}
+					ImageManager.rotateV[data.swapEndIndex] = dummyData.rotate;
+					ImageManager.positionX[data.swapEndIndex] = dummyData.positionX;
+					ImageManager.positionY[data.swapEndIndex] = dummyData.positionY;
+					ImageManager.effectSepia[data.swapEndIndex] = dummyData.effectSepia;
+					ImageManager.effectGray[data.swapEndIndex] = dummyData.effectGray;
+					ImageManager.effectOld[data.swapEndIndex] = dummyData.effectOld;
+					ImageManager.effectLuxury[data.swapEndIndex] = dummyData.effectLuxury;
+					ImageManager.effectLomo[data.swapEndIndex] = dummyData.effectLomo;
+					ImageManager.effectBrightness[data.swapEndIndex] = dummyData.effectBrightness;
+					ImageManager.effectContrast[data.swapEndIndex] = dummyData.effectContrast;					
+				}
 			} else {
 				imgManager.delImg( idx );
 				imgManager.delThumb( idx );
@@ -424,14 +481,16 @@ package
 		private function imgEditSet( e:EventInData ):void
 		{
 			var eData:EventInDataClass = e.data as EventInDataClass;
-			imgManager.setImg( eData.numb , eData.bitmap , eData.effectGray , eData.effectSepia , eData.effectOld , eData.effectLuxury , eData.effectLomo , eData.effectBrightness , eData.effectContrast , eData.positionX , eData.positionY , eData.rotate );
+			imgManager.setImg( eData.numb , eData.bitmap , true , eData.effectGray , eData.effectSepia , eData.effectOld , eData.effectLuxury , eData.effectLomo , eData.effectBrightness , eData.effectContrast , eData.positionX , eData.positionY , eData.rotate );
 			imgManager.setThumb( eData.numb , eData.bitmap );
-			
-			topNavi.stageInit();
-			body01.bitmapSet();
-			body02.bitmapReset();
-			editPop.bitmapSet();
-			
+			if( eData.isFinal )
+			{
+				topNavi.stageInit();
+				body01.bitmapSet();
+				body02.bitmapReset();
+				editPop.bitmapSet();
+			}
+			editPop.hide();
 		}
 		
 		// isAll 이 없으면 해당 idx 만 stageInit 적용. isAll 값이 있으면 해당 idx 부터 끝까지 stageInit
@@ -494,6 +553,10 @@ package
 				}
 			}
 		}
+		private function editPopClose( e:Event ):void
+		{
+			body02.editPopClose();
+		}
 		// 이미지 보정 팝업창 띄움
 		private function imageEditShow( e:EventInData ):void
 		{
@@ -504,32 +567,38 @@ package
 		}
 		private function nextStep( e:Event ):void
 		{
-			bodyShow(2);		
+			bodyShow(2);
 		}
 		private function previewShow1( e:Event ) :void
 		{
 			previewPop.showTest( body01._status , body01.getSkinItem( body01._status ) as viewerItem );
-			//savePop.saveShowTest( body01.getSkinItem( body01._status ) );
 		}
 		private function previewShow2( e:Event ) :void
 		{
 			previewPop.showTest( body01._status , body02.getSaveImage() as viewerItem );
-			//savePop.saveShowTest( body01.getSkinItem( body01._status ) );
 		}
 		private function bodyGoPrev( e:Event ):void
 		{
-			bodyShow( 1 );
+			//bodyShow( 1 );
+			commonPop.show( Preset.COMMONPOP_DATA_RESET_CONFIRM );
+			commonPop.addEventListener( Preset.COMMONPOP_CLOSE_CLICK_DISPATCH_STR , bodyGoPrevAction );
+		}
+		private function bodyGoPrevAction( e:Event ):void
+		{
+			bodyShow(1);
 		}
 		private function bodyShow( ty:Number ):void
 		{
 			switch( ty )
 			{
 				case 1 :
-					stepStatusSet( 1 );//isStepStatus = 1;
+					stepStatusSet( 1 );
 					Tweener.addTween( bodyBox , { x:0 , time:2 , onComplete:twEditComplete1 } );
+					body01.btnRemoveListener();
+					body02.btnRemoveListener();
 					break;
 				case 2 :
-					stepStatusSet( 2 );//isStepStatus = 2;
+					stepStatusSet( 2 );
 					Tweener.addTween( bodyBox , { x: -Preset.BODY02_XY[0] + Preset.BODY02_POSITION_GAP , time:1.5 , onComplete:twEditComplete2 } );
 					if( isFirst )
 					{
@@ -537,6 +606,8 @@ package
 					} else {
 						body02.editSwfLoad( body01._status );
 					}
+					body01.btnRemoveListener();
+					body02.btnRemoveListener();
 					break;
 				default : 
 					
@@ -550,10 +621,12 @@ package
 		}
 		private function twEditComplete1():void
 		{
+			body01.btnAddListener();
 			body02.twEditComplete1();
 		}
 		private function twEditComplete2():void
 		{
+			body02.btnAddListener();
 			body02.twEditComplete2();
 		} 
 		private function commonPopShow( e:EventInData ):void
@@ -568,39 +641,29 @@ package
 			previewPop.smsSend( _vector );
 		}
 		
-		/*
-		private function savePopSaveShow( e:Event = null ):void
-		{			
-		savePop.saveShow();
-		}
-		*/
 		// Image Server Upload
 		private function savePopShow1( e:Event ):void
 		{
+			savePop.manTel = body02.manTel;
+			savePop.girlTel = body02.girlTel;
 			savePop.saveShowTest( body01.getSkinItem( body01._status ) );
 		}
 		private function savePopShow2( e:Event ):void
 		{
+			savePop.manTel = body02.manTel;
+			savePop.girlTel = body02.girlTel;
 			savePop.saveShowTest( body02.getSaveImage() );
-			//savePop.saveShow( body01._status , 2 );
 		}
 		
-		/*private function receiveSaveBitmap( e:Event ):void
-		{
-		var bitmapVector:Vector.<Bitmap>;
-		bitmapVector = body02.getSaveImage( body01._status );
-		}
-		/*
-		private function uploadImage( e:Event ):void
-		{
-		savePop.save( body01._status );
-		}
-		*/
 		private function imageSaveComplete( e:Event ):void
 		{
-			trace("upload!!");
-		}
 		
+		}
+		private function stageMouseUp( e:MouseEvent ):void
+		{
+			topNavi.topNaviUpAction( e );
+			body02.stageMouseUp();
+		}
 	}
 	
 }

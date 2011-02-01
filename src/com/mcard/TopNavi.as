@@ -5,20 +5,25 @@ package com.mcard
 	import com.fwang.events.EventInData;
 	import com.fwang.utils.DisplayObjectUtils;
 	import com.fwang.utils.ImageUtils;
+	import com.fwang.utils.JPEGEncoder;
 	import com.mcard.Setting.Preset;
 	import com.mcard.events.EventInDataClass;
 	import com.mcard.manager.ImageManager;
 	
 	import flash.display.Bitmap;
+	import flash.display.BitmapData;
 	import flash.display.Loader;
 	import flash.display.MovieClip;
 	import flash.display.Sprite;
+	import flash.display.Stage;
 	import flash.events.Event;
 	import flash.events.MouseEvent;
+	import flash.geom.Matrix;
 	import flash.geom.Rectangle;
 	import flash.net.FileFilter;
 	import flash.net.FileReference;
 	import flash.net.FileReferenceList;
+	import flash.utils.ByteArray;
 	
 	public class TopNavi extends Sprite
 	{
@@ -37,6 +42,7 @@ package com.mcard
 		private var gap:Number = 0;
 		private var isStepStatus:Number = 1;
 		private var btnImgEditDummyXY:Vector.<Number> = new Vector.<Number>;
+		private var mcCopy:MovieClip;
 		
 		public function TopNavi()
 		{
@@ -75,6 +81,7 @@ package com.mcard
 		public function stageInit( imgSetFirst:Boolean = true ):void
 		{
 			gap = 0;
+			
 			if( imgSetFirst ) {
 				topNaviRemove();
 				var ii:Number = 0;
@@ -82,6 +89,10 @@ package com.mcard
 				{ 
 					setTopNaviItem( ImageManager.thumbArr[ii] , ii );
 				}
+			}
+			if( curFileNum == fileCnt )
+			{
+				topNaviAddListener();
 			}
 			dispatchEvent( new EventInData( Preset.TOP_NAVI_CLASS_STRING , Preset.DISPATCH_STAGEINIT_COMPLETE ) ) ;
 		}
@@ -103,7 +114,10 @@ package com.mcard
 				topNaviClip.btnImgEditDummy.y = btnImgEditDummyXY[1];
 			}
 		}
-		
+		public function topNaviUpAction(e:MouseEvent):void
+		{
+			topNaviUp( e );
+		}
 		private function setTopNaviItem( e:Bitmap , num:Number ):void
 		{
 			var mc:MovieClip = DisplayObjectUtils.duplicate( topNaviClip.BodyItem , true ) as MovieClip;
@@ -124,12 +138,11 @@ package com.mcard
 			}
 			mc.x = ( Preset.TOPNAVI_WH[0] + Preset.TOPNAVI_GAP ) * num + gap;
 			mc.y = 0;
-			//mc.addEventListener( MouseEvent.CLICK , topNaviClick );
-			mc.addEventListener( MouseEvent.MOUSE_OVER , topNaviOver );
-			mc.addEventListener( MouseEvent.MOUSE_OUT , topNaviOut );
-			bBoxMc.addEventListener( MouseEvent.MOUSE_DOWN , topNaviDown );
-			//mc.addEventListener( MouseEvent.MOUSE_UP , topNaviUp );
-			mc.btnDel.addEventListener( MouseEvent.CLICK , topNaviDelClick );
+			
+			//mc.addEventListener( MouseEvent.MOUSE_OVER , topNaviOver );
+			//mc.addEventListener( MouseEvent.MOUSE_OUT , topNaviOut );
+			//bBoxMc.addEventListener( MouseEvent.MOUSE_DOWN , topNaviDown );
+			//mc.btnDel.addEventListener( MouseEvent.CLICK , topNaviDelClick );
 		}
 		
 		private function topNaviDelClick( e:MouseEvent ):void
@@ -157,8 +170,7 @@ package com.mcard
 			var moveMc:MovieClip;
 			var moveV:Number;
 			
-			
-			
+			topNaviRemoveListener();
 			for( ii = num + 1 ; ii < ImageManager.length() ; ii++ )
 			{
 				moveMc = topNaviBox.getChildAt( ii ) as MovieClip;
@@ -184,6 +196,7 @@ package com.mcard
 		}
 		private function topNaviDelComplete( num:Number ):void
 		{
+			topNaviAddListener();
 			topNaviBox.removeChildAt( num );
 			var inData:EventInDataClass = new EventInDataClass( num , null , null , false );
 			dispatchEvent( new EventInData( inData , "imgSet" ) );
@@ -235,53 +248,52 @@ package com.mcard
 		private function topNaviDown( e:MouseEvent ):void
 		{
 			var _mc:MovieClip = e.currentTarget as MovieClip;
-			var _mcCopy:MovieClip = DisplayObjectUtils.duplicate( _mc , true ) as MovieClip;
+			mcCopy = DisplayObjectUtils.duplicate( _mc , true ) as MovieClip;
 			var _b:Bitmap = ImageUtils.duplicateImage( _mc.getChildAt(0) as Bitmap );
-			_mcCopy.addChildAt( _b , 0 );
-			topNaviBox.addChild( _mcCopy );
-			_mcCopy.x = _mc.parent.x;
-			//_mcCopy.y = 10//_mc.y;
+			mcCopy.addChildAt( _b , 0 );
+			topNaviBox.addChild( mcCopy );
+			mcCopy.x = _mc.parent.x;
 			
-			//_mcCopy.getChildAt(0).name = Preset.TOPNAVI_ITEM_BITMAP_NAME;
-			//_b.width = Preset.TOPNAVI_WH[0] - 2;
-			//_b.height = Preset.TOPNAVI_WH[1] - 2;
-			//_b.x = _b.y = 1;
-			
-			_mcCopy.alpha = 0.7;
+			mcCopy.alpha = 0.7;
 			var rect:Rectangle = new Rectangle( 0 , _mc.y , topNaviBox.width - _mc.width , 0 );
-			_mcCopy.startDrag( false , rect );
-			_mcCopy.addEventListener( MouseEvent.MOUSE_UP , topNaviUp );
+			mcCopy.startDrag( false , rect );
+			mcCopy.addEventListener( MouseEvent.MOUSE_UP , topNaviUp );
 			
 			topNaviDownId = _mc.parent.parent.getChildIndex( _mc.parent );
 		}
 		private function topNaviUp( e:MouseEvent ):void
 		{
-			var _mc:MovieClip = e.currentTarget as MovieClip;
+			//var _mc:MovieClip = e.currentTarget as MovieClip;
+			var _mc:MovieClip = mcCopy;
 			var ii:Number;
 			var endIndex:Number;
 			
-			for( ii = 0 ; ii < _mc.parent.numChildren - 1 ; ii++ )
+			if( _mc != null )
 			{
-				if( _mc.parent.getChildAt( ii ).x <= ( _mc.x + _mc.width / 2 ) )
+				for( ii = 0 ; ii < _mc.parent.numChildren - 1 ; ii++ )
 				{
-					if( ( ii == _mc.parent.numChildren - 2 ) || _mc.parent.getChildAt( ii + 1 ).x > ( _mc.x + _mc.width / 2 ) )
+					if( _mc.parent.getChildAt( ii ).x <= ( _mc.x + _mc.width / 2 ) )
 					{
-						endIndex = ii;
+						if( ( ii == _mc.parent.numChildren - 2 ) || _mc.parent.getChildAt( ii + 1 ).x > ( _mc.x + _mc.width / 2 ) )
+						{
+							endIndex = ii;
+						}
 					}
 				}
+				topMoveArr.length = 0;
+				topMoveArr[0] = topNaviDownId;
+				topMoveArr[1] = endIndex;
+				if( topNaviDownId != endIndex && !isNaN( topNaviDownId ) && !isNaN( endIndex ) )
+				{
+					topNaviRemoveListener();
+					Tweener.addTween( _mc.parent.getChildAt( topNaviDownId ) , { alpha:0 , time:0.3 , transition:"linear" , onComplete:topMove , onCompleteParams:topMoveArr } );
+				}
+				topNaviDownId = NaN;
+				
+				_mc.stopDrag();
+				_mc.parent.removeChild( _mc );
+				mcCopy = null;
 			}
-			
-			topMoveArr.length = 0;
-			topMoveArr[0] = topNaviDownId;
-			topMoveArr[1] = endIndex;
-			if( topNaviDownId != endIndex && !isNaN( topNaviDownId ) && !isNaN( endIndex ) )
-			{
-				Tweener.addTween( _mc.parent.getChildAt( topNaviDownId ) , { alpha:0 , time:0.3 , transition:"linear" , onComplete:topMove , onCompleteParams:topMoveArr } );
-			}
-			topNaviDownId = NaN;
-			
-			_mc.stopDrag();
-			_mc.parent.removeChild( _mc );
 		}
 		private function topMove( beforeIndex:Number , afterIndex:Number ):void
 		{
@@ -290,8 +302,6 @@ package com.mcard
 			var moveV:Number;
 			if( beforeIndex > afterIndex )
 			{
-				
-				
 				for( ii = beforeIndex - 1 ; ii >= afterIndex ; ii-- )
 				{
 					moveMc = topNaviBox.getChildAt( ii ) as MovieClip;
@@ -344,23 +354,26 @@ package com.mcard
 			// image manager 재정렬
 			var ii:Number = beforeIndex;
 			var tmpBitmap:Bitmap = ImageManager.imgArr[beforeIndex];
-			var tmpThumbBitmap:Bitmap = ImageManager.thumbArr[beforeIndex];
+			var tmpOrigBitmap:Bitmap = ImageManager.origImgArr[beforeIndex];
 			var inData:EventInDataClass;
 			if( beforeIndex > afterIndex )
 			{
 				for( ii = beforeIndex - 1 ; ii >= afterIndex ; ii-- )
 				{
-					inData = new EventInDataClass( ii + 1 , ImageManager.imgArr[ii] , ImageManager.thumbArr[ii] , false );
+					inData = new EventInDataClass( ii + 1 , ImageManager.imgArr[ii] , ImageManager.origImgArr[ii] , false );
 					dispatchEvent( new EventInData( inData , "imgSet" ) );
 				}
 			} else {
 				for( ii = beforeIndex + 1 ; ii <= afterIndex ; ii++ )
 				{
-					inData = new EventInDataClass( ii - 1 , ImageManager.imgArr[ii] , ImageManager.thumbArr[ii] , false );
+					inData = new EventInDataClass( ii - 1 , ImageManager.imgArr[ii] , ImageManager.origImgArr[ii] , false );
 					dispatchEvent( new EventInData( inData , "imgSet" ) );
 				}
 			}
-			inData = new EventInDataClass( afterIndex , tmpBitmap , tmpThumbBitmap , false );
+			topNaviAddListener();
+			inData = new EventInDataClass( afterIndex , tmpBitmap , tmpOrigBitmap , false );
+			inData.swapBeginIndex = beforeIndex;
+			inData.swapEndIndex = afterIndex;
 			dispatchEvent( new EventInData( inData , "imgSet" ) );
 		}
 		private function topClickSetNaN():void
@@ -375,6 +388,41 @@ package com.mcard
 		{
 			dispatchEvent( new EventInData( isTopClick , "editBtnClick" ) );
 			topClickSetNaN();
+		}
+		private function topNaviAddListener():void
+		{
+			var ii:Number = 0;
+			for( ii = 0 ; ii < topNaviBox.numChildren ; ii++ )
+			{
+				var _mc:MovieClip = topNaviBox.getChildAt(ii) as MovieClip;
+				if( _mc.btnDel != null )
+				{
+					_mc.addEventListener( MouseEvent.MOUSE_OVER , topNaviOver );
+					_mc.addEventListener( MouseEvent.MOUSE_OUT , topNaviOut );
+					_mc.getChildByName( Preset.TOPNAVI_ITEM_BITMAP_NAME ).addEventListener( MouseEvent.MOUSE_DOWN , topNaviDown );
+					_mc.btnDel.addEventListener( MouseEvent.CLICK , topNaviDelClick );
+				}
+				
+			}
+			//bBoxMc.addEventListener( MouseEvent.MOUSE_DOWN , topNaviDown );
+			//mc.btnDel.addEventListener( MouseEvent.CLICK , topNaviDelClick );
+		}
+		private function topNaviRemoveListener():void
+		{
+			var ii:Number = 0;
+			for( ii = 0 ; ii < topNaviBox.numChildren ; ii++ )
+			{
+				var _mc:MovieClip = topNaviBox.getChildAt(ii) as MovieClip;
+				if( _mc.btnDel != null )
+				{
+					_mc.removeEventListener( MouseEvent.MOUSE_OVER , topNaviOver );
+					_mc.removeEventListener( MouseEvent.MOUSE_OUT , topNaviOut );
+					_mc.getChildByName( Preset.TOPNAVI_ITEM_BITMAP_NAME ).removeEventListener( MouseEvent.MOUSE_DOWN , topNaviDown );
+					_mc.btnDel.removeEventListener( MouseEvent.CLICK , topNaviDelClick );
+				}
+			}
+			//bBoxMc.addEventListener( MouseEvent.MOUSE_DOWN , topNaviDown );
+			//mc.btnDel.addEventListener( MouseEvent.CLICK , topNaviDelClick );
 		}
 		private function fileClick( e:MouseEvent ):void
 		{
@@ -426,9 +474,23 @@ package com.mcard
 		}
 		private function dataCompleteHandler( e:Event ):void
 		{
-			var inData:EventInDataClass = new EventInDataClass( ImageManager.length() , e.target.content as Bitmap );
-			dispatchEvent( new EventInData( inData , "imgSet" ) );
-			
+			var bb:Bitmap = e.target.content as Bitmap;
+			var setWidth:Number = Preset.SKIN_WH[0] * 2 // 640 에 맞추면 메인 이미지가 height가 작아서 fill 로 채워진다. 여유있게 2곱해서 1280 에 리사이징 한다.
+			if( bb.width > setWidth )
+			{
+				var _scale:Number = ( setWidth / bb.width ); 
+				var _width:Number = setWidth;
+				var _height:Number= bb.height * _width / bb.width;
+				var bmd:BitmapData = new BitmapData( _width , _height );
+				bmd.draw( bb , new Matrix( _scale , 0 , 0 , _scale ) );
+				bb.bitmapData = bmd;
+			}
+			//var inData:EventInDataClass = new EventInDataClass( ImageManager.length() , bbb );
+			//if( curFileNum == fileCnt )
+			//{
+				var inData:EventInDataClass = new EventInDataClass( ImageManager.length() , bb );
+				dispatchEvent( new EventInData( inData , "imgSet" ) );
+			//}
 		}
 		private function onFileCancel( e:Event ):void
 		{

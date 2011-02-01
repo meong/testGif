@@ -36,6 +36,10 @@ package com.fwang.components
 			clip.pointer.addEventListener( MouseEvent.MOUSE_DOWN , pointerDown );
 			clip.pointer.addEventListener( MouseEvent.MOUSE_MOVE , pointerMove );
 			clip.pointer.addEventListener( MouseEvent.MOUSE_UP , pointerUp );
+			
+			( clip.btnMinus as MovieClip ).buttonMode = true;
+			( clip.btnPlus as MovieClip ).buttonMode = true;
+			( clip.pointer as MovieClip ).buttonMode = true;
 		}
 		public function reset():void
 		{
@@ -121,6 +125,13 @@ package com.fwang.components
 		{
 			// Math.round( ( pointer x - minimum x ) / pointer move area width ) * 100 ::  0 ~ 100  백분율로 반환
 			rate = MathUtils.round( ( clip.pointer.x - Math.round( clip.btnMinus.x + clip.btnMinus.width / 2 + clip.pointer.width / 2 ) ) / ( clip.btnPlus.x - clip.btnMinus.x - clip.btnMinus.width - clip.pointer.width ) , 2 ) * 100;
+			if( rate < 0 )
+			{
+				rate = 0;
+			} else if( rate > 100 )
+			{
+				rate = 100;
+			}
 			//trace(" set rate :  " , rate );
 		}
 	}

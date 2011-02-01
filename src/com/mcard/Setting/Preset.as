@@ -74,7 +74,7 @@ package com.mcard.Setting
 		public static const SBAR_CLIP:Array = [ 322 , 11 ];
 		public static const SBAR_CLIP_MOVE_HEIGHT:Number = 406;
 		public static const STAGE02_SKIN_WH:Array = [ 320 , 441 ];
-		public static const TITLE_COMPONENT_XY:Array = [ 356.5 , 55.5 ];
+		public static const TITLE_COMPONENT_XY:Array = [ 363 , 55.5 ];
 		public static const TITLE_BOX_GAP:Number = 5;
 		public static const MAN_COMPONENT_XY:Array = [ 365 , 170.5 ];
 		public static const MAN_BOX_GAP:Number = 5;
@@ -100,6 +100,8 @@ package com.mcard.Setting
 		public static const MAN_ITEM_STRING:String = "man";
 		public static const GIRL_ITEM_STRING:String = "girl";
 		public static const ITEM_SLIDE_RESIZE_RATE:Number = 2;
+		public static const TITLESLIDER_ARROWCLICK_DISPATCH_STR:String = "titleSliderArrowClickDispatch";
+		
 		//viewer
 		public static const VIEWERITEM_MAN_NAME:String = "ViewerItemTitleMc";
 		public static const VIEWERITEM_TITLE_NAME:String = "ViewerItemManMc";
@@ -125,7 +127,7 @@ package com.mcard.Setting
 		public static const EDIT_POP_OLD_PREFIX:String = "Old";
 		public static const EDIT_POP_LUXURY_PREFIX:String = "Luxury";
 		public static const EDIT_POP_LOMO_PREFIX:String = "Lomo";
-		
+		public static const EVENT_STR_EDITPOP_CLOSE:String = "EditPopClose";
 		//preview set
 		public static const QR_XY:Array = [ 613 , 348 ];
 		public static const DISPATCH_GET_TEL:String = "GetTelNumber";
@@ -135,6 +137,9 @@ package com.mcard.Setting
 		public static const COMMONPOP_FILEMAX_ERROR:Number = 1;	// 파일 업로드 10개 제한  예외상황
 		public static const COMMONPOP_SKIN_COUNT_ERROR:Number = 2;	// 스킨 갯수 제한  예외상황
 		public static const COMMONPOP_SMS_SEND_OK:Number = 3;	// sms 발송 되었습니다. alert
+		public static const COMMONPOP_DATA_RESET_CONFIRM:Number = 4;	// 변경된 데이타가 초기화 됩니다. 이동하시겠습니까?
+		public static const COMMONPOP_CLOSE_CLICK_DISPATCH_STR:String = "commonPopCloseClick";
+		public static const COMMONPOP_CANCEL_CLICK_DISPATCH_STR:String = "commonPopCancelClick";
 		
 		// save pop 
 		public static const SAVEPOP_DISPATCH_REQUEST_BITMAP:String = "RequestBitmap";

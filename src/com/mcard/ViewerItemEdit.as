@@ -31,7 +31,7 @@ package com.mcard
 		
 		// scroll bar setting
 		private var sBarClip:ScrollBarControllerClip;
-		private var sBar:ScrollBarController; // = new ScrollBarController( bmBox , sBarClip , bmBox.height + Preset.IMGVIEWER02_WH[1] , Preset.IMGVIEWER02_WH[1] ); 
+		private var sBar:ScrollBarController; 
 
 		public function ViewerItemEdit( isDrag:Boolean = true )
 		{
@@ -89,7 +89,6 @@ package com.mcard
 			if( _mc != null ) {
 				viewItem.viewerItemInit( idx , _mc );
 				if( isFirst ) {
-					//var sizeRate:Number = Preset.STAGE02_SKIN_WH[0] / viewItem.width;
 					var sizeRate:Number = Preset.STAGE02_SKIN_WH[0] / Preset.SKIN_WH[0];
 					viewItem.width *= sizeRate;
 					viewItem.height *= sizeRate;
@@ -108,7 +107,6 @@ package com.mcard
 		public function bitmapSet( idx:Number = NaN ):void
 		{
 			if( idx >= 0 && idx < 5 && isViewerSet ) {
-				trace( "viewItem.imgSetting " , idx );
 				viewItem.imgSetting( idx , ImageManager.imgArr[idx] );
 			}
 			
@@ -120,29 +118,28 @@ package com.mcard
 			
 			if( ImageManager.imgArr[5] )
 			{
-				setImage( bm6 , ImageManager.imgArr[5] );
+				setImage( bm6 , 5 );
 			}
 			if( ImageManager.imgArr[6] )
 			{
-				setImage( bm7 , ImageManager.imgArr[6] );
+				setImage( bm7 , 6 );
 			}
 			if( ImageManager.imgArr[7] )
 			{
-				setImage( bm8 , ImageManager.imgArr[7] );
+				setImage( bm8 , 7 );
 			}
 			if( ImageManager.imgArr[8] ) 
 			{
-				setImage( bm9 , ImageManager.imgArr[8] );
+				setImage( bm9 , 8 );
 			}
 			if( ImageManager.imgArr[9] )
 			{
-				setImage( bm10 , ImageManager.imgArr[9] );
+				setImage( bm10 , 9 );
 			}
 			dispatchEvent( new EventInData( null , Preset.DISPATCH_STAGEINIT_COMPLETE ) );
 		}
 		public function stageInit( isFirst:Number = NaN ):void
 		{
-			//trace("viewerItemInit( null , isFirst ) :: " + isFirst );
 			viewerItemInit( null , isFirst );
 		}
 		
@@ -150,7 +147,6 @@ package com.mcard
 		{
 			isViewerSet = false;
 			var numCnt:Number = bmBox.numChildren;
-			//trace(" numCnt:::::::::::::" + numCnt );
 			for( var ii:Number = 0 ; ii < numCnt - 1 ; ii++ )
 			{
 				bmBox.removeChildAt(1);
@@ -166,10 +162,9 @@ package com.mcard
 		}
 		public function setSkinTitle( _alpha:Number , _color:Number ):void
 		{
-			//trace( "ViewerItemEdit setSkinTitle alpha , color : " , _alpha , _color );
 			viewItem.titleSetting( _alpha , _color );
 		}
-		public function textfieldSet( _text:String , _color:uint , _alpha:Number ):void
+		public function textfieldSet( _text:String , _color:Number , _alpha:Number ):void
 		{
 			viewItem.textfieldSet( _text , _color , _alpha );
 		}
@@ -198,46 +193,115 @@ package com.mcard
 			viewItem.getChildByName( Preset.VIEWERITEM_GIRL_NAME ).x = viewItemEdit.getChildByName( Preset.VIEWERITEM_GIRL_NAME ).x;
 			viewItem.getChildByName( Preset.VIEWERITEM_GIRL_NAME ).y = viewItemEdit.getChildByName( Preset.VIEWERITEM_GIRL_NAME ).y;
 			
-			//( viewItem.getChildByName( Preset.VIEWERITEM_TEXTFIELD_NAME ) as TextField ).htmlText = ( viewItemEdit.getChildByName( Preset.VIEWERITEM_TEXTFIELD_NAME ) as TextField ).htmlText;
 			viewItem.textfieldSet( ( viewItemEdit.getChildByName( Preset.VIEWERITEM_TEXTFIELD_NAME ) as TextField ).htmlText , viewItemEdit._textfieldBgColor , viewItemEdit._textfieldBgAlpha );
-			//viewItem.getChildByName( Preset.VIEWERITEM_TEXTFIELD_BG_NAME ).alpha = viewItemEdit._textfieldBgAlpha;
-			//viewItem.getChildByName( Preset.VIEWERITEM_TEXTFIELD_BG_NAME ).colo = viewItemEdit._textfieldBgColor;
-			
-			/*parameters.TitleX1 = mainMc.getChildByName( Preset.VIEWERITEM_TITLE_NAME ).x;
-			parameters.TitleY1 = mainMc.getChildByName( Preset.VIEWERITEM_TITLE_NAME ).y;
-			parameters.TitleIndex = mainMc._titleItemNumb;
-			parameters.TitleAlpha = mainMc._titleItemAlpha;
-			parameters.TitleColor = mainMc._titleItemColor;
-			
-			parameters.ManX1 = mainMc.getChildByName( Preset.VIEWERITEM_MAN_NAME ).x;
-			parameters.ManY1 = mainMc.getChildByName( Preset.VIEWERITEM_MAN_NAME ).y;
-			parameters.ManX2 = mainMc.getChildByName( Preset.VIEWERITEM_MAN_NAME ).x + mainMc.getChildByName( Preset.VIEWERITEM_MAN_NAME ).width;
-			parameters.ManY2 = mainMc.getChildByName( Preset.VIEWERITEM_MAN_NAME ).y + mainMc.getChildByName( Preset.VIEWERITEM_MAN_NAME ).height;
-			parameters.ManIndex = mainMc._manItemNumb;
-			
-			parameters.GirlX1 = mainMc.getChildByName( Preset.VIEWERITEM_GIRL_NAME ).x;
-			parameters.GirlY1 = mainMc.getChildByName( Preset.VIEWERITEM_GIRL_NAME ).y;
-			parameters.GirlX2 = mainMc.getChildByName( Preset.VIEWERITEM_GIRL_NAME ).x + mainMc.getChildByName( Preset.VIEWERITEM_GIRL_NAME ).width;
-			parameters.GirlY2 = mainMc.getChildByName( Preset.VIEWERITEM_GIRL_NAME ).y + mainMc.getChildByName( Preset.VIEWERITEM_GIRL_NAME ).height;
-			parameters.GirlIndex = mainMc._girlItemNumb;
-			
-			parameters.TextfieldText = ( mainMc.getChildByName( Preset.VIEWERITEM_TEXTFIELD_NAME ) as TextField ).htmlText;
-			
-			parameters.TextfieldBgColor = mainMc._textfieldBgColor;
-			parameters.TextfieldBgAlpha = mainMc._textfieldBgAlpha;
-			*/
-			
+		}
+		public function sBarReset():void
+		{
+			if( sBar != null )
+			{
+				sBarClip.y = Preset.SBAR_CLIP[1];
+				sBar.onMoveAction();
+				//sBar.reset();
+			}
+		}
+		public function sBarUpClick():void
+		{
+			var minY:Number = Preset.SBAR_CLIP[1];
+			sBarClip.y -= sBarClip.height;
+			if( sBarClip.y < minY )
+			{
+				sBarClip.y = minY;
+			}
+			sBar.onMoveAction();
+		}
+		public function sBarDownClick():void
+		{
+			var maxY:Number = Preset.SBAR_CLIP_MOVE_HEIGHT + Preset.SBAR_CLIP[1] - sBarClip.height;
+			sBarClip.y += sBarClip.height;
+			if( sBarClip.y > maxY )
+			{
+				sBarClip.y = maxY;
+			}
+			sBar.onMoveAction();
 		}
 		private function stageInitComplete( e:Event ):void
 		{
 			dispatchEvent( new EventInData( null , Preset.DISPATCH_STAGEINIT_COMPLETE ) ) ;
 		}
-		private function setImage( b:Bitmap , parentB:Bitmap ):void
+		private function setImage( b:Bitmap , imgIndex:Number ):void
 		{
+			var _mc:MovieClip = new MovieClip();
 			b = null;
-			b = ImageUtils.duplicateImage( parentB );
-			bmBox.addChild( b );
-			setXYWH( b );
+			b = ImageUtils.duplicateImage( ImageManager.imgArr[imgIndex] );
+			_mc.addChild( b );
+			b.x = -b.width / 2;
+			b.y = -b.height / 2;
+			setXYWH2( _mc , imgIndex );
+			bmBox.addChild( _mc );
+		}
+		private function setXYWH2( _mc:MovieClip , imgIndex:Number ):void
+		{
+			var tmpW:Number;
+			switch( ImageManager.rotateV[imgIndex] )
+			{
+				case 0 :
+					tmpW = _mc.width;
+					_mc.width = Preset.STAGE02_SKIN_WH[0];
+					_mc.height = _mc.height * Preset.STAGE02_SKIN_WH[0] / tmpW;
+					_mc.rotation = ImageManager.rotateV[imgIndex];
+					if( bmBox.numChildren > 1 )
+					{
+						_mc.y = bmBox.getChildAt( bmBox.numChildren - 1 ).y + bmBox.getChildAt( bmBox.numChildren - 1 ).height / 2;
+					} else {
+						_mc.y = Preset.STAGE02_SKIN_WH[0] / Preset.SKIN_WH[0] * Preset.SKIN_WH[1]; 
+					}
+					_mc.y += _mc.height / 2;
+					_mc.x += _mc.width / 2;
+					break;
+				case 90 :
+					tmpW = _mc.height;
+					_mc.height = Preset.STAGE02_SKIN_WH[0];
+					_mc.width = _mc.width * Preset.STAGE02_SKIN_WH[0] / tmpW;
+					_mc.rotation = ImageManager.rotateV[imgIndex];
+					if( bmBox.numChildren > 1 )
+					{
+						_mc.y = bmBox.getChildAt( bmBox.numChildren - 1 ).y + bmBox.getChildAt( bmBox.numChildren - 1 ).height / 2;
+					} else {
+						_mc.y = Preset.STAGE02_SKIN_WH[0] / Preset.SKIN_WH[0] * Preset.SKIN_WH[1]; 
+					}
+					_mc.y += _mc.height / 2;
+					_mc.x += _mc.width / 2;
+					break;
+				case 180 :
+					tmpW = _mc.width;
+					_mc.width = Preset.STAGE02_SKIN_WH[0];
+					_mc.height = _mc.height * Preset.STAGE02_SKIN_WH[0] / tmpW;
+					_mc.rotation = ImageManager.rotateV[imgIndex];
+					if( bmBox.numChildren > 1 )
+					{
+						_mc.y = bmBox.getChildAt( bmBox.numChildren - 1 ).y + bmBox.getChildAt( bmBox.numChildren - 1 ).height / 2;
+					} else {
+						_mc.y = Preset.STAGE02_SKIN_WH[0] / Preset.SKIN_WH[0] * Preset.SKIN_WH[1]; 
+					}
+					_mc.y += _mc.height / 2;
+					_mc.x += _mc.width / 2;
+					break;
+				case 270 :
+					tmpW = _mc.height;
+					_mc.height = Preset.STAGE02_SKIN_WH[0];
+					_mc.width = _mc.width * Preset.STAGE02_SKIN_WH[0] / tmpW;
+					_mc.rotation = ImageManager.rotateV[imgIndex];
+					if( bmBox.numChildren > 1 )
+					{
+						_mc.y = bmBox.getChildAt( bmBox.numChildren - 1 ).y + bmBox.getChildAt( bmBox.numChildren - 1 ).height / 2;
+					} else {
+						_mc.y = Preset.STAGE02_SKIN_WH[0] / Preset.SKIN_WH[0] * Preset.SKIN_WH[1]; 
+					}
+					_mc.y += _mc.height / 2;
+					_mc.x += _mc.width / 2;
+					break;
+			}
+			
 		}
 		private function setXYWH( b:Bitmap ):void
 		{
@@ -248,7 +312,6 @@ package com.mcard
 			{
 				b.y = bmBox.getChildAt( bmBox.numChildren - 2 ).y + bmBox.getChildAt( bmBox.numChildren - 2 ).height;
 			} else {
-				//b.y = bmBox.getChildAt( bmBox.numChildren - 2 ).height;
 				b.y = Preset.STAGE02_SKIN_WH[0] / Preset.SKIN_WH[0] * Preset.SKIN_WH[1]; 
 			}
 		}

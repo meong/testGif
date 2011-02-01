@@ -30,10 +30,21 @@ package com.mcard
 		{
 			body01Clip.btnLeft.addEventListener( MouseEvent.CLICK , leftClick );
 			body01Clip.btnRight.addEventListener( MouseEvent.CLICK , rightClick );
-			body01Clip.btnNext.addEventListener( MouseEvent.CLICK , nextClick );
 			body01Clip.btnPreview.addEventListener( MouseEvent.CLICK , previewClick );
-			body01Clip.btnSave.addEventListener( MouseEvent.MOUSE_DOWN , saveDown );
 			viewer.addEventListener( Preset.DISPATCH_STAGEINIT_COMPLETE , stageInitComplete );
+			btnAddListener();
+		}
+		
+		// stage 01 , 02 이동간엔  버튼 안되도록.
+		public function btnAddListener():void
+		{
+			body01Clip.btnNext.addEventListener( MouseEvent.CLICK , nextClick );
+			body01Clip.btnSave.addEventListener( MouseEvent.MOUSE_DOWN , saveDown );
+		}
+		public function btnRemoveListener():void
+		{
+			body01Clip.btnNext.removeEventListener( MouseEvent.CLICK , nextClick );
+			body01Clip.btnSave.removeEventListener( MouseEvent.MOUSE_DOWN , saveDown );
 		}
 		private function setDefault():void
 		{

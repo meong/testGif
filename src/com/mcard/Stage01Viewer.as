@@ -266,6 +266,7 @@ package com.mcard
 			{
 				( viewBody.getChildAt( ii ) as viewerItem ).imgSetting( index , ImageManager.imgArr[index] );
 			}
+			//( viewBody.getChildAt( 0 ) as viewerItem ).imgSetting( index , ImageManager.imgArr[index] );
 			viewerItemSetWH();
 			dispatchEvent( new Event( Preset.DISPATCH_STAGEINIT_COMPLETE ) );
 		}

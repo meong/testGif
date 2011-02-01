@@ -17,6 +17,7 @@ package com.mcard
 	import flash.display.Loader;
 	import flash.display.MovieClip;
 	import flash.display.Sprite;
+	import flash.display.Stage;
 	import flash.events.Event;
 	import flash.events.KeyboardEvent;
 	import flash.events.MouseEvent;
@@ -34,7 +35,7 @@ package com.mcard
 		private var viewerMask:MovieClip = new MovieClip();			
 		private var textfieldBgMc:MovieClip = new MovieClip();
 		private var viewerItemEdit:ViewerItemEdit = new ViewerItemEdit();
-		private var titleBox:Stage02ItemboxSlider = new Stage02ItemboxSlider( body02Clip.titleBoxArrow , Preset.TITLE_BOX_GAP , Preset.TITLE_ITEM_STRING );
+		private var titleBox:Stage02TitleboxSlider = new Stage02TitleboxSlider( body02Clip.titleBoxArrow , Preset.TITLE_BOX_GAP , Preset.TITLE_ITEM_STRING );
 		private var manBox:Stage02ItemboxSlider = new Stage02ItemboxSlider( body02Clip.manBoxArrow , Preset.MAN_BOX_GAP , Preset.MAN_ITEM_STRING );
 		private var girlBox:Stage02ItemboxSlider = new Stage02ItemboxSlider( body02Clip.girlBoxArrow , Preset.GIRL_BOX_GAP , Preset.GIRL_ITEM_STRING );
 		private var comboboxDataColor:DataProvider = new DataProvider();
@@ -82,13 +83,15 @@ package com.mcard
 		}
 		private function setListener():void
 		{
-			body02Clip.btnComplete.addEventListener( MouseEvent.MOUSE_DOWN , btnCompleteDown );
+			btnAddListener();
 			body02Clip.btnPreview.addEventListener( MouseEvent.CLICK , btnPreviewClick );
-			body02Clip.btnCancel.addEventListener( MouseEvent.CLICK , btnCancelClick );
+			body02Clip.btnScrollBarUp.addEventListener( MouseEvent.CLICK , sBarUpClick );
+			body02Clip.btnScrollBarDown.addEventListener( MouseEvent.CLICK , sBarDownClick );
 			sliderbarTitleAlpha.addEventListener( SliderBar.CHANGE , sliderbarTitleAlphaChange );
 			body02Clip.colorPickerTitle.addEventListener( ColorPickerEvent.CHANGE , titleColorChange );
 			body02Clip.btnOrig.addEventListener( MouseEvent.CLICK , btnOrigClick );
 			titleBox.addEventListener( EventInData.onAction , itemBoxItemSet );
+			titleBox.addEventListener( Preset.TITLESLIDER_ARROWCLICK_DISPATCH_STR , titleBoxArrowClick );
 			manBox.addEventListener( EventInData.onAction , itemBoxItemSet );
 			girlBox.addEventListener( EventInData.onAction , itemBoxItemSet );
 			body02Clip.txtManTel.btnTxt1.addEventListener( MouseEvent.CLICK , tel1Click );
@@ -98,6 +101,7 @@ package com.mcard
 			body02Clip.txtManTel.txt1.tel017.addEventListener( MouseEvent.CLICK , telItemClick );
 			body02Clip.txtManTel.txt1.tel018.addEventListener( MouseEvent.CLICK , telItemClick);
 			body02Clip.txtManTel.txt1.tel019.addEventListener( MouseEvent.CLICK , telItemClick );
+			body02Clip.txtManTel.txt2.addEventListener( Event.CHANGE , manTelTxt2Change );
 			body02Clip.txtGirlTel.btnTxt1.addEventListener( MouseEvent.CLICK , tel1Click );
 			body02Clip.txtGirlTel.txt1.tel010.addEventListener( MouseEvent.CLICK , telItemClick );
 			body02Clip.txtGirlTel.txt1.tel011.addEventListener( MouseEvent.CLICK , telItemClick );
@@ -105,6 +109,7 @@ package com.mcard
 			body02Clip.txtGirlTel.txt1.tel017.addEventListener( MouseEvent.CLICK , telItemClick );
 			body02Clip.txtGirlTel.txt1.tel018.addEventListener( MouseEvent.CLICK , telItemClick );
 			body02Clip.txtGirlTel.txt1.tel019.addEventListener( MouseEvent.CLICK , telItemClick );
+			body02Clip.txtGirlTel.txt2.addEventListener( Event.CHANGE , girlTelTxt2Change );
 			
 			//copybox
 			body02Clip.copyBox.txt.txt.addEventListener( MouseEvent.CLICK , textfieldClick );
@@ -113,14 +118,11 @@ package com.mcard
 			body02Clip.copyBox.colorPickerWrap.addEventListener( MouseEvent.CLICK , cpWrapClick );
 			body02Clip.copyBox.colorPickerBg.addEventListener( ColorPickerEvent.CHANGE , cpBgChange );
 			sliderbarTxtAlpha.addEventListener( SliderBar.CHANGE , sliderbarTxtAlphaChange );
-			this.addEventListener( MouseEvent.MOUSE_UP , stageMouseUp );
 			body02Clip.copyBox.comboboxFontStyle.addEventListener( Event.CHANGE , copyboxFontChange );
 			body02Clip.copyBox.comboboxFontSize.addEventListener( Event.CHANGE , copyboxFontsizeChange );
-			//body02Clip.copyBox.comboboxletterspacing.addEventListener( Event.CHANGE , copyboxLetterSpacingChange );
 			body02Clip.copyBox.colorPicker.addEventListener( ColorPickerEvent.CHANGE , copyboxFontcolorChange );
 			body02Clip.copyBox.btnBold.addEventListener( MouseEvent.CLICK , copyboxBoldClick );
 			body02Clip.copyBox.btnItalic.addEventListener( MouseEvent.CLICK , copyboxItalicClick );
-			//body02Clip.copyBox.btnNormal.addEventListener( MouseEvent.CLICK , copyboxNormalClick );
 			body02Clip.copyBox.btnAlignLeft.addEventListener( MouseEvent.CLICK , copyboxAlignLeftClick );
 			body02Clip.copyBox.btnAlignCenter.addEventListener( MouseEvent.CLICK , copyboxAlignCenterClick );
 			body02Clip.copyBox.btnAlignRight.addEventListener( MouseEvent.CLICK , copyboxAlignRightClick );
@@ -131,16 +133,21 @@ package com.mcard
 			manBox.addEventListener( Preset.DISPATCH_STAGEINIT_COMPLETE , stageInitComplete );
 			girlBox.addEventListener( Preset.DISPATCH_STAGEINIT_COMPLETE , stageInitComplete );
 		}
+		
+		// stage 01 , 02 이동간엔  버튼 안되도록.
+		public function btnAddListener():void
+		{
+			body02Clip.btnComplete.addEventListener( MouseEvent.MOUSE_DOWN , btnCompleteDown );
+			body02Clip.btnCancel.addEventListener( MouseEvent.CLICK , btnCancelClick );
+		}
+		public function btnRemoveListener():void
+		{
+			body02Clip.btnComplete.removeEventListener( MouseEvent.MOUSE_DOWN , btnCompleteDown );
+			body02Clip.btnCancel.removeEventListener( MouseEvent.CLICK , btnCancelClick );
+		}
 		private function setDefault():void
 		{
 			var ii:Number;
-			/*
-			for( var ii:Number = 1 ; ii <= Preset.TEL_TYPE.length ; ii++ )
-			{
-				( body02Clip.txtManTel.txt1 as ComboBox ).addItem( { label : Preset.TEL_TYPE[ ii ] } );
-				( body02Clip.txtGirlTel.txt1 as ComboBox ).addItem( { label : Preset.TEL_TYPE[ ii ] } );
-			}
-			*/
 			body02Clip.copyBox.txt.addChildAt( textfieldBgMc , 0 );
 			viewerItemEdit.x = Preset.EDIT_BODY[0];
 			viewerItemEdit.y = Preset.EDIT_BODY[1];
@@ -162,7 +169,6 @@ package com.mcard
 			// font style setting
 			fontlistArr = Font.enumerateFonts( true );
 			
-			//comboboxData.addItems( fontlistArr );
 			for each ( var font:Font in fontlistArr )
 			{
 				comboboxDataFontStyle.addItem( { label:font.fontName, data:font } );
@@ -174,13 +180,6 @@ package com.mcard
 				comboboxDataFontSize.addItem( { label:ii, data:ii } );
 			}
 			body02Clip.copyBox.comboboxFontSize.dataProvider = comboboxDataFontSize;
-			
-			/*for( ii = Preset.COPYBOX_COMBOBOX_LETTERSPACING[0] ; ii <= Preset.COPYBOX_COMBOBOX_LETTERSPACING[1] ; ii ++ )
-			{
-				comboboxDataLetterspacing.addItem( { label: ii , data:ii } );
-			}
-			body02Clip.copyBox.comboboxletterspacing.dataProvider = comboboxDataLetterspacing;
-			*/
 			
 			//color picker setting
 			body02Clip.copyBox.colorPicker.colors = Preset.COPYBOX_COLORPICKER_COLOR;
@@ -203,7 +202,6 @@ package com.mcard
 		// edit swf load function 
 		public function stageInit( i:Number , isFirst:Boolean ):void
 		{
-			//trace(" stage02!! stageInit i , isfirst : " + i , isFirst );
 			viewerItemEdit.stageInit( i );
 			titleItemAlpha = 1;
 			titleItemColor = NaN;
@@ -238,6 +236,10 @@ package com.mcard
 			lor.load( new URLRequest( Preset.SITE_URL + MCard.xml.skin[numb].@body ) );
 			lor.contentLoaderInfo.addEventListener( Event.COMPLETE , editSwfLoadComplete );
 		}
+		public function editPopClose():void
+		{
+			viewerItemEdit.sBarReset();
+		}
 		
 		private function stageInitComplete( e:EventInData ):void
 		{
@@ -261,11 +263,9 @@ package com.mcard
 				dispatchEvent( new EventInData( Preset.BODY02_CLASS_STRING , Preset.DISPATCH_STAGEINIT_COMPLETE ) );
 			}
 		}
-		//public function editSwfLoad( e:Event , status:Number ):void
+		
 		private function editSwfLoadComplete( e:Event ):void
 		{
-			//this.numb = status;
-			//viewerItemEdit.viewerItemInit( e.currentTarget.content , status );
 			viewerItemEdit.viewerItemInit( e.currentTarget.content , numb );
 			if( MemberManager.isFirst != 1 && stageIsFirst )
 			{
@@ -279,6 +279,7 @@ package com.mcard
 				textStyleInit();
 			}
 		}
+		
 		// bitmap reset function
 		public function bitmapReset():void
 		{
@@ -301,16 +302,6 @@ package com.mcard
 		{
 			return viewerItemEdit.getSaveImage();
 		}
-		/*
-		public function imageMake():ByteArray
-		{
-			//var ba:ByteArray;
-			var bmd:BitmapData = new BitmapData( Preset.SKIN_WH[0] , Preset.SKIN_WH[1] );
-			bmd.draw( viewerItemEdit );
-			var ba:ByteArray = new JPEGEncoder( Preset.JPEG_QUALITY ).encode( bmd );
-			return ba;
-		}
-		*/
 		
 		private function textBoxBgInit( _color:uint = NaN , _alpha:Number = NaN ):void
 		{
@@ -439,6 +430,14 @@ package com.mcard
 		{
 			dispatchEvent( new Event( "preview" ) );
 		}
+		private function sBarUpClick( e:MouseEvent ):void
+		{
+			viewerItemEdit.sBarUpClick();
+		}
+		private function sBarDownClick( e:MouseEvent ):void
+		{
+			viewerItemEdit.sBarDownClick();
+		}
 		private function btnCancelClick( e:MouseEvent ):void
 		{
 			dispatchEvent( new Event( "bodyGoPrev" ) );
@@ -458,6 +457,20 @@ package com.mcard
 			var _mc:MovieClip = e.currentTarget as MovieClip;
 			telItemSet( _mc );
 		}
+		private function manTelTxt2Change( e:Event ):void
+		{
+			if( body02Clip.txtManTel.txt2.length == 4 )
+			{
+				stage.focus = body02Clip.txtManTel.txt3;
+			}
+		}
+		private function girlTelTxt2Change( e:Event ):void
+		{
+			if( body02Clip.txtGirlTel.txt2.length == 4 )
+			{
+				stage.focus = body02Clip.txtGirlTel.txt3;
+			}
+		}
 		private function telItemSet( _mc:MovieClip ):void
 		{
 			if( _mc.parent.parent.name == "txtManTel" )
@@ -468,7 +481,7 @@ package com.mcard
 				girlTel1 = _mc.name.replace( "tel" , "" );
 			}
 			var _mcCopy:MovieClip = DisplayObjectUtils.duplicate( _mc ) as MovieClip;
-			if( _mc.parent.parent.getChildByName( Preset.TEL1_MC_NAME ) != null ) 
+			if( _mc.parent.parent.getChildByName( Preset.TEL1_MC_NAME ) != null )
 			{
 				_mc.parent.parent.removeChild( _mc.parent.parent.getChildByName( Preset.TEL1_MC_NAME ) );
 			}
@@ -493,18 +506,23 @@ package com.mcard
 					break;
 			}
 			viewerItemEdit.setSkinItem( e.data[0] , e.data[1] );
+			titleItemColor = NaN;
+		}
+		private function titleBoxArrowClick( e:Event ):void
+		{
+			titleItemColor = NaN;
 		}
 		private function textfieldClick( e:MouseEvent ):void
 		{
-			textStyleInit( false );
+			//textStyleInit( false );
 		}
 		private function textfieldKeyboardClick( e:KeyboardEvent ):void
 		{
-			textStyleInit( false );
+			//textStyleInit( false );
 		}
 		private function textfieldInput( e:TextEvent ):void
 		{
-			textStyleInit( false );
+			//textStyleInit( false );
 		}
 		private function cpWrapClick( e:MouseEvent ):void
 		{
@@ -535,12 +553,16 @@ package com.mcard
 			titleItemColor = NaN;
 			viewerItemEdit.setSkinTitle( titleItemAlpha , titleItemColor );
 		}
-		private function stageMouseUp( e:MouseEvent ):void
+		public function stageMouseUp( e:MouseEvent = null ):void
 		{
 			txtBgAlpha = sliderbarTxtAlpha.rate;
 			sliderbarTxtAlpha.stopDrag();
+			titleItemAlpha = sliderbarTitleAlpha.rate;
+			sliderbarTitleAlpha.stopDrag();
+			viewerItemEdit.setSkinTitle( titleItemAlpha , titleItemColor );
 			textfieldBgSet();
 		}
+		
 		private function copyboxFontChange( e:Event ):void
 		{
 			textfieldEditor.setFont( ( e.currentTarget as ComboBox ).selectedLabel );
@@ -623,13 +645,6 @@ package com.mcard
 		{
 			var textfield:TextField = body02Clip.copyBox.txt.txt;
 			var txt:String = textfield.htmlText;
-			/*var txtformat:TextFormat = textfield.getTextFormat();
-			var txtformatArr:Vector.<TextFormat> = new Vector.<TextFormat>();
-			txtformatArr[0] = txtformat;
-			for( var ii:Number = 0 ; ii < txt.length ; ii++ )
-			{
-				txtformatArr[ii] = textfield.getTextFormat( ii , ii + 1 );
-			}*/
 			viewerItemEdit.textfieldSet( txt , txtBgColor , txtBgAlpha );
 		}
 		private function textfieldBgSet():void

@@ -5,26 +5,30 @@ package com.mcard.events
 	public class EventInDataClass
 	{
 		private var _bitmap:Bitmap;
+		private var _origBitmap:Bitmap;
 		private var _numb:Number;
+		private var _swapBeginIndex:Number;
+		private var _swapEndIndex:Number;
 		private var _isFirst:Boolean;
 		
 		// effect
 		private var _rotate:Number;
 		private var _positionX:Number;
 		private var _positionY:Number;
-		
 		private var _effectSepia:Boolean;
 		private var _effectGray:Boolean;
 		private var _effectOld:Boolean;
 		private var _effectLuxury:Boolean;
 		private var _effectLomo:Number;
-		
 		private var _effectBrightness:Number;
 		private var _effectContrast:Number;
 		
-		public function EventInDataClass( numb:Number , bitmap:Bitmap = null , thumbBitmap:Bitmap = null , isFirst:Boolean = true )
+		private var _isFinal:Boolean = false;
+		
+		public function EventInDataClass( numb:Number , bitmap:Bitmap = null , origBitmap:Bitmap = null , isFirst:Boolean = true )
 		{
 			_bitmap = bitmap;
+			_origBitmap = origBitmap;
 			_numb = numb;
 			_isFirst = isFirst;
 			//trace( "eventindataClass w h : " , _bitmap.width , _bitmap.height );
@@ -34,11 +38,33 @@ package com.mcard.events
 			//trace( "bitmap Getter : " , _bitmap.width , _bitmap.height );
 			return _bitmap;
 		}
+		public function get origBitmap():Bitmap
+		{
+			//trace( "bitmap Getter : " , _bitmap.width , _bitmap.height );
+			return _origBitmap;
+		}
 		
 		public function get numb():Number
 		{
 			return _numb;
 		}
+		public function get swapBeginIndex():Number
+		{
+			return _swapBeginIndex;
+		}
+		public function set swapBeginIndex( _swapBeginIndex:Number ):void
+		{
+			this._swapBeginIndex = _swapBeginIndex;
+		}
+		public function get swapEndIndex():Number
+		{
+			return _swapEndIndex;
+		}
+		public function set swapEndIndex( _swapEndIndex:Number ):void
+		{
+			this._swapEndIndex = _swapEndIndex;
+		}
+		
 		public function get isFirst():Boolean
 		{
 			return _isFirst;
@@ -132,6 +158,15 @@ package com.mcard.events
 		public function get effectContrast():Number
 		{
 			return _effectContrast;
+		}
+		
+		public function set isFinal( _isFinal:Boolean ):void
+		{
+			this._isFinal = _isFinal;
+		}
+		public function get isFinal():Boolean
+		{
+			return _isFinal;
 		}
 	}
 }
